@@ -23,3 +23,7 @@
 ### 安装与配置
 
 插件地址：https://www.vim.org/scripts/script.php?script_id=4151
+
+# 其他
+
+在`.vimrc中`<cr>表示回车的意思
