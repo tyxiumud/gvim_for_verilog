@@ -25,6 +25,7 @@ set relativenumber "显示相对行号
 set cursorcolumn "add cursor in column
 set cursorline "add cursor in line 
 set guifont=Monospace\ 16 "gui style
+set lines=35 columns=118 "其中lines是窗口显示的行数，columns是窗口显示的列数
 
 set expandtab "expandtab 选项把插入的 tab 字符替换成特定数目的空格。具体空格数目跟 tabstop 选项值有关
 set tabstop=4 "tab键相当于4个空格键
@@ -38,23 +39,9 @@ set completeopt=menu,preview,longest "自动补全相关的设置
 
 
 "-------------------MAP OPTION-------------------
-inoremap ( ()<ESC>i
-inoremap [ []<ESC>i
-
-"ban up and also keys 
-"imap <Up> <Nop>
-"imap <Down> <Nop>
-"imap <Left> <Nop>
-"imap <Right> <Nop>
-"nmap <Up> <Nop>
-"nmap <Down> <Nop>
-"nmap <Left> <Nop>
-"nmap <Right> <Nop>
 
 imap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
 imap <C-L> <C-X><C-L> “使用CTRL L 代替 CTRL X ＋CTRL L 就是整个句子的补全
-nmap ,l ^
-nmap ,r $
 
 map <F2> :NERDTreeMirror<CR> 
 map <F2> :NERDTreeToggle<CR>
@@ -63,8 +50,13 @@ map <F2> :NERDTreeToggle<CR>
 "添加或更新头
 map <F3> :call TitleDet()<cr>
 
-"对齐例化后的信息
-:map <F6> :s/^ *\./        ./<cr>^f(i                              <ESC>f)i                               <ESC>^24ldw24ldwa  
+"对齐例化后的信息,保证你的信号名称小于55个字符，否则会有错误。将数字55修改的稍微大一些
+map <F6> 0i			<ESC>0dwi    <ESC>^f(i	                                                                    					<ESC>^55ldwa			<ESC>bldwf)i	            		         	                         <ESC>^f(55ldwj
+"自动生成注释的模板
+"功能描述 输入ii oo 自动生成输入输入模板，需要输入端口信号位宽，信号名称
+map ii <ESC>0i        <ESC>0dwi    input   wire						                                					<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
+map oo <ESC>0i        <ESC>0dwi    output  wire											<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
+
 
 "----------------- FUNCTION -------------------
 function AddTitle()
@@ -72,7 +64,7 @@ function AddTitle()
     call append(1,"#")
     call append(2,"# Author: meng  - email@vip.qq.com")
     call append(3,"#")
-    call append(4,"# QQ : xxxxxxxxx ")
+    call append(4,"# CopyRight: mengguodong ")
     call append(5,"#")
     call append(6,"# Last modified: ".strftime("%Y-%m-%d %H:%M"))
     call append(7,"#")
