@@ -12,6 +12,9 @@ set nocompatible "不兼容vi
 set noerrorbells " 不让vim发出讨厌的滴滴声 
 set shortmess=ati " 启动的时候不显示那个援助索马里儿童的提示 
 set novisualbell "不要闪烁
+"关闭各种按键叮叮声音和闪屏
+set vb t_vb=
+au GuiEnter * set t_vb=
 
 "禁止相关文件的产生
 set noundofile "禁止un~文件
@@ -24,7 +27,9 @@ set nu  "显示行号
 set relativenumber "显示相对行号
 set cursorcolumn "add cursor in column
 set cursorline "add cursor in line 
-set guifont=Monospace\ 16 "gui style
+"set guifont=Monospace\ 16 "gui style for linux
+set guifont=Courier_new:h16"for windows
+
 set lines=35 columns=118 "其中lines是窗口显示的行数，columns是窗口显示的列数
 
 set expandtab "expandtab 选项把插入的 tab 字符替换成特定数目的空格。具体空格数目跟 tabstop 选项值有关
