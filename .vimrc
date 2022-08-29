@@ -1,4 +1,8 @@
 "---------User define set option-----------
+"设置快速编辑.vimrc的快捷键
+:nnoremap ,ev :vsplit $MYVIMRC<cr>
+:nnoremap ,sv :source $MYVIMRC<cr>
+
 "高亮配色设置
 syntax on  "语法高亮度显示
 set t_Co=256  "开启256色支持
@@ -22,22 +26,18 @@ set nobackup "禁止~文件
 set noswapfile "禁止swp文件
 
 "辅助编码显示栏目
-
 set nu  "显示行号
 set relativenumber "显示相对行号
 set cursorcolumn "add cursor in column
 set cursorline "add cursor in line 
 "set guifont=Monospace\ 16 "gui style for linux
 set guifont=Courier_new:h16"for windows
-
-set lines=35 columns=118 "其中lines是窗口显示的行数，columns是窗口显示的列数
-
+set lines=45 columns=138 "其中lines是窗口显示的行数，columns是窗口显示的列数
 set expandtab "expandtab 选项把插入的 tab 字符替换成特定数目的空格。具体空格数目跟 tabstop 选项值有关
 set tabstop=4 "tab键相当于4个空格键
 set shiftwidth=4 "换行自动变为空格
 set autoindent "设置自动缩进  自动缩进，当你第一行敲 tab + 文字 回车后 下一行自动给你加个 tab 
 set backspace=2 "使用 backspace
-
 set laststatus=2 "启动显示状态行
 set encoding=utf-8 "文件编码
 set completeopt=menu,preview,longest "自动补全相关的设置
@@ -59,17 +59,21 @@ map <F3> :call TitleDet()<cr>
 map <F6> 0i			<ESC>0dwi    <ESC>^f(i	                                                                    					<ESC>^55ldwa			<ESC>bldwf)i	            		         	                         <ESC>^f(55ldwj
 "自动生成注释的模板
 "功能描述 输入ii oo 自动生成输入输入模板，需要输入端口信号位宽，信号名称
-map ii <ESC>0i        <ESC>0dwi    input   wire						                                					<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
-map oo <ESC>0i        <ESC>0dwi    output  wire											<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
+map ,ii <ESC>0i        <ESC>0dwi    input   wire						                                					<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
+map ,oo <ESC>0i        <ESC>0dwi    output  wire											<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
+imap zu //*************************************************\<CR>//define parameter and intennal singles<CR>//*************************************************/<CR><CR>//*************************************************\<CR>//main code<CR>//*************************************************/<CR>
+
+"----------------- PLUGIN -------------------
+
 
 
 "----------------- FUNCTION -------------------
 function AddTitle()
     call append(0,"/*=============================================================================")
     call append(1,"#")
-    call append(2,"# Author: meng  - email@vip.qq.com")
+    call append(2,"# Author: mengguodong Email: 823300630@qq.com")
     call append(3,"#")
-    call append(4,"# CopyRight: mengguodong ")
+    call append(4,"# Personal Website: guodongblog.com")
     call append(5,"#")
     call append(6,"# Last modified: ".strftime("%Y-%m-%d %H:%M"))
     call append(7,"#")
@@ -107,3 +111,4 @@ function TitleDet()
     endwhile
     call AddTitle()
 endfunction
+
