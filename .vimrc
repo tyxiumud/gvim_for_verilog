@@ -1,7 +1,6 @@
 "---------User define set option-----------
-"设置快速编辑.vimrc的快捷键
-:nnoremap ,ev :vsplit $MYVIMRC<cr>
-:nnoremap ,sv :source $MYVIMRC<cr>
+"设置mapleader
+:let mapleader = ","
 
 "高亮配色设置
 syntax on  "语法高亮度显示
@@ -44,28 +43,31 @@ set completeopt=menu,preview,longest "自动补全相关的设置
 
 
 "-------------------MAP OPTION-------------------
+"imap
+inoremap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
+inoremap <C-L> <C-X><C-L> “使用CTRL L 代替 CTRL X ＋CTRL L 就是整个句子的补全
 
-imap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
-imap <C-L> <C-X><C-L> “使用CTRL L 代替 CTRL X ＋CTRL L 就是整个句子的补全
-
-map <F2> :NERDTreeMirror<CR> 
-map <F2> :NERDTreeToggle<CR>
+"nmap
+" NERDTree
+nnoremap <F2> :NERDTreeMirror<CR> 
+nnoremap <F2> :NERDTreeToggle<CR>
 
 "进行版权声明的设置
 "添加或更新头
-map <F3> :call TitleDet()<cr>
+nnoremap <F3> :call TitleDet()<cr>
 
 "对齐例化后的信息,保证你的信号名称小于55个字符，否则会有错误。将数字55修改的稍微大一些
-map <F6> 0i			<ESC>0dwi    <ESC>^f(i	                                                                    					<ESC>^55ldwa			<ESC>bldwf)i	            		         	                         <ESC>^f(55ldwj
-"自动生成注释的模板
+nnoremap <F6> 0i			<ESC>0dwi    <ESC>^f(i	                                                                    					<ESC>^55ldwa			<ESC>bldwf)i	            		         	                         <ESC>^f(55ldwj
+"设置快速编辑.vimrc的快捷键
+:nnoremap <leader>ev :vsplit $MYVIMRC<cr>
+:nnoremap <leader>sv :source $MYVIMRC<cr>
 "功能描述 输入ii oo 自动生成输入输入模板，需要输入端口信号位宽，信号名称
-map ,ii <ESC>0i        <ESC>0dwi    input   wire						                                					<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
-map ,oo <ESC>0i        <ESC>0dwi    output  wire											<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
-imap zu //*************************************************\<CR>//define parameter and intennal singles<CR>//*************************************************/<CR><CR>//*************************************************\<CR>//main code<CR>//*************************************************/<CR>
+nnoremap <leader>ii <ESC>0i        <ESC>0dwi    input   wire						                                					<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
+nnoremap <leader>oo <ESC>0i        <ESC>0dwi    output  wire											<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
+"自动生成注释的模板
+inoremap zu //*************************************************\<CR>//define parameter and intennal singles<CR>//*************************************************/<CR><CR>//*************************************************\<CR>//main code<CR>//*************************************************/<CR>
 
 "----------------- PLUGIN -------------------
-
-
 
 "----------------- FUNCTION -------------------
 function AddTitle()
