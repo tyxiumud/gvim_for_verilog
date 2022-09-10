@@ -48,9 +48,6 @@ inoremap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
 inoremap <C-L> <C-X><C-L> “使用CTRL L 代替 CTRL X ＋CTRL L 就是整个句子的补全
 
 "nmap
-" NERDTree
-nnoremap <F2> :NERDTreeMirror<CR> 
-nnoremap <F2> :NERDTreeToggle<CR>
 
 "进行版权声明的设置
 "添加或更新头
@@ -61,13 +58,32 @@ nnoremap <F6> 0i			<ESC>0dwi    <ESC>^f(i	                                      
 "设置快速编辑.vimrc的快捷键
 :nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 :nnoremap <leader>sv :source $MYVIMRC<cr>
-"功能描述 输入ii oo 自动生成输入输入模板，需要输入端口信号位宽，信号名称
+"功能描述 输入<leader>ii <leader>oo 自动生成输入输入模板，需要输入端口信号位宽，信号名称
 nnoremap <leader>ii <ESC>0i        <ESC>0dwi    input   wire						                                					<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
 nnoremap <leader>oo <ESC>0i        <ESC>0dwi    output  wire											<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
 "自动生成注释的模板
 inoremap zu //*************************************************\<CR>//define parameter and intennal singles<CR>//*************************************************/<CR><CR>//*************************************************\<CR>//main code<CR>//*************************************************/<CR>
+"切换buffer以及删除buffer
+nnoremap <C-j> :bn<CR>
+nnoremap <C-k> :bp<CR>
+nnoremap <C-x> :bwipe<CR>
 
 "----------------- PLUGIN -------------------
+"air-line
+let g:airline#extensions#tabline#enabled=1 "顶部tab显示"
+let g:airline#extensions#tabline#buffer_idx_mode = 1 "显示buffer number"
+let g:airline#extensions#whitespace#enabled = 0 "清楚traling的警告"
+
+let g:airline_left_sep = '►'
+let g:airline_left_alt_sep = '>'
+let g:airline_right_sep = '◄'
+let g:airline_right_alt_sep = '<'
+let g:airline_symbols.linenr = '¶'
+let g:airline_symbols.branch = 'o̶'
+
+" NERDTree
+nnoremap <F2> :NERDTreeMirror<CR> 
+nnoremap <F2> :NERDTreeToggle<CR>
 
 "----------------- FUNCTION -------------------
 function AddTitle()
@@ -113,4 +129,3 @@ function TitleDet()
     endwhile
     call AddTitle()
 endfunction
-

@@ -24,6 +24,14 @@
 
 插件地址：https://www.vim.org/scripts/script.php?script_id=4151
 
+## 状态栏美化插件-airline
+
+
+
+## 括号自动补全插件-auto_pairs_master
+
+
+
 # 其他
 
-在`.vimrc中`<cr>表示回车的意思
+在`.vimrc`中`<cr>`表示回车的意思，`M`表示`Alt`的意思，`C`表示`Ctrl`的意思
