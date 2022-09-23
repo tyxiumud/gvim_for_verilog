@@ -45,7 +45,7 @@ set completeopt=menu,preview,longest "自动补全相关的设置
 "-------------------MAP OPTION-------------------
 "imap
 inoremap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
-inoremap <C-L> <C-X><C-L> “使用CTRL L 代替 CTRL X ＋CTRL L 就是整个句子的补全
+inoremap <C-L> <C-X><C-L> "使用CTRL L 代替 CTRL X ＋CTRL L 就是整个句子的补全
 
 "nmap
 
