@@ -1,6 +1,6 @@
 "---------User define set option-----------
 "设置mapleader
-let mapleader = "," ,
+let mapleader = ","
 
 "高亮配色设置
 syntax on  "语法高亮度显示
