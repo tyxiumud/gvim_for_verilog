@@ -30,7 +30,7 @@ set relativenumber "显示相对行号
 set cursorcolumn "add cursor in column
 set cursorline "add cursor in line 
 "set guifont=Monospace\ 16 "gui style for linux
-set guifont=Courier_new:h16"for windows
+set guifont=Courier_new:h12"for windows
 set lines=45 columns=138 "其中lines是窗口显示的行数，columns是窗口显示的列数
 set expandtab "expandtab 选项把插入的 tab 字符替换成特定数目的空格。具体空格数目跟 tabstop 选项值有关
 set tabstop=4 "tab键相当于4个空格键
@@ -55,13 +55,13 @@ inoremap <C-L> <C-X><C-L>
 nnoremap <F3> :call TitleDet()<cr>
 
 "对齐例化后的信息,保证你的信号名称小于55个字符，否则会有错误。将数字55修改的稍微大一些
-nnoremap <F6> 0i			<ESC>0dwi    <ESC>^f(i	                                                                    					<ESC>^55ldwa			<ESC>bldwf)i	            		         	                         <ESC>^f(55ldwj
+nnoremap <F6> 0i            <ESC>0dwi    <ESC>^f(i                                                                                            <ESC>^55ldwa            <ESC>bldwf)i                                                              <ESC>^f(55ldwj
 "设置快速编辑.vimrc的快捷键
 :nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 :nnoremap <leader>sv :source $MYVIMRC<cr>
 "功能描述 输入<leader>ii <leader>oo 自动生成输入输入模板，需要输入端口信号位宽，信号名称
-nnoremap <leader>ii <ESC>0i        <ESC>0dwi    input   wire						                                					<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
-nnoremap <leader>oo <ESC>0i        <ESC>0dwi    output  wire											<ESC>020li[<ESC>ldwwi						<ESC>028li-1: 0]<ESC>wi															<ESC>044ldwea																												<ESC>089li,<ESC>0f,a								<ESC>bldwj
+nnoremap <leader>ii <ESC>0i        <ESC>0dwi    input   wire                                                                            <ESC>020li[<ESC>ldwwi                        <ESC>028li-1: 0]<ESC>wi                                                            <ESC>044ldwea                                                                                                                <ESC>089li,<ESC>0f,a                                <ESC>bldwj
+nnoremap <leader>oo <ESC>0i        <ESC>0dwi    output  wire                                            <ESC>020li[<ESC>ldwwi                        <ESC>028li-1: 0]<ESC>wi                                                            <ESC>044ldwea                                                                                                                <ESC>089li,<ESC>0f,a                                <ESC>bldwj
 "自动生成注释的模板
 inoremap zu //*************************************************\<CR>//define parameter and intennal singles<CR>//*************************************************/<CR><CR>//*************************************************\<CR>//main code<CR>//*************************************************/<CR>
 "切换buffer以及删除buffer
@@ -79,7 +79,31 @@ let g:airline_left_sep = '►'
 let g:airline_left_alt_sep = '>'
 let g:airline_right_sep = '◄'
 let g:airline_right_alt_sep = '<'
-
+"rainbow
+let g:rainbow_active = 1
+    let g:rainbow_conf = {
+    \    'guifgs': ['lightmagenta', 'darkorange3', 'seagreen3', 'firebrick'],
+    \    'ctermfgs': ['darkblue', 'lightyellow', 'lightcyan', 'lightmagenta'],
+    \    'operators': '_,_',
+    \    'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
+    \    'separately': {
+    \        '*': {},
+    \        'tex': {
+    \            'parentheses': ['start=/(/ end=/)/', 'start=/\[/ end=/\]/'],
+    \        },
+    \        'lisp': {
+    \            'guifgs': ['lightmagenta', 'darkorange3', 'seagreen3', 'firebrick', 'darkorchid3'],
+    \        },
+    \        'vim': {
+    \            'parentheses': ['start=/(/ end=/)/', 'start=/\[/ end=/\]/', 'start=/{/ end=/}/ fold', 'start=/(/ end=/)/ containedin=vimFuncBody', 'start=/\[/ end=/\]/ containedin=vimFuncBody', 'start=/{/ end=/}/ fold containedin=vimFuncBody'],
+    \        },
+    \        'html': {
+    \            'parentheses': ['start=/\v\<((area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr)[ >])@!\z([-_:a-zA-Z0-9]+)(\s+[-_:a-zA-Z0-9]+(\=("[^"]*"|'."'".'[^'."'".']*'."'".'|[^ '."'".'"><=`]*))?)*\>/ end=#</\z1># fold'],
+    \        },
+    \        'css': 0,
+    \        'nerdtree': 0, 
+    \    }
+    \}
 
 " NERDTree
 nnoremap <F2> :NERDTreeMirror<CR> 
