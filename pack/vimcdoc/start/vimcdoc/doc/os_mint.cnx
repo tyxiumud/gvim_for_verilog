@@ -1,0 +1,15 @@
+*os_mint.txt*	适用于 Vim 9.0 版本。	最近更新: 2020年7月
+
+
+		  VIM 参考手册    by Jens M.Felderhoff
+				译者: iCrazy<icrazy@ustc.edu>
+
+						        *MiNT* *Atari*
+Atari MiNT 的支持在 8.2.1215 补丁中被删除。当时可能已不能工作，因为代码老旧且
+无人维护。
+
+
+原始代码提供者: Jens M. Felderhoff，电邮: <jmf@infko.uni-koblenz.de>
+
+
+vim:tw=78:ts=8:noet:ft=help:norl:

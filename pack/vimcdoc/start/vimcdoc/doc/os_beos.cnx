@@ -1,0 +1,14 @@
+*os_beos.txt*	适用于 Vim 9.0 版本。	最近更新: 2020年7月
+
+
+		  VIM 参考手册    by Bram Moolenaar
+				译者: Willis
+
+
+						*beos* *BeOS* *BeBox*
+本文件阐述 Vim 的 BeOS 移植版本的特殊之处。
+
+BeOS 的支持在 8.2.0849 补丁中被删除。
+
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

@@ -1,0 +1,106 @@
+@import 'https://fontlibrary.org/face/gnu-unifont';
+@font-face {
+  font-family: 'Noto Sans Mono CJK SC';
+  src:
+    local('Noto Sans Mono CJK SC Regular'),
+    local('NotoSansMonoCJKsc-Regular'),
+    url('/assets/fonts/noto/NotoSansMonoCJKsc-Regular.otf') format('opentype');
+}
+@media only screen and (max-width: 768px) {
+  #banner {
+    width: calc(100% - 2em) !important;
+    text-align: center;
+  }
+  #banner hr { display: none; }
+  header { display: none; }
+  footer { display: none; }
+  #outer {
+    position: fixed;
+    top: 4em; right: 1px; bottom: 1px; left: 1px;
+    width: auto !important;
+    max-width: 40em;
+    overflow: scroll;
+  }
+}
+body {
+  font-family: 'Noto Sans Mono CJK SC', WenQuanYiZenHeiMono, Sarasa-Mono-T-SC-Regular, 'MS Hei', NSimsun, UnifontMedium, monospace;
+}
+#outer {
+  border: 1px solid;
+  border-radius: 1em;
+  margin: auto;
+  width: 40em;
+  padding: 0.5em;
+  background: rgb(255, 248, 220);
+}
+.inner { white-space: pre; }
+.inner:first-line { line-height: 0; }
+#banner {
+  margin: auto;
+  display: table;
+  position: fixed;
+  z-index: 1;
+  width: 5.5em;
+}
+#banner form { display: inline; }
+#banner input {
+  width: 5.5em;
+  border-radius: 0.5em;
+  box-sizing: border-box;
+  background: rgb(255, 248, 220);
+  font: inherit;
+}
+#banner iframe { display: none; }
+footer { margin-top: 1em; font-style:italic; }
+code { font-family: inherit; }
+:link {
+  color: rgb(0,137,139);
+  text-decoration: none;
+}
+:visited {
+  color: rgb(0,100,100);
+  background-color: white; /* should be inherit */
+}
+:active {
+  color: rgb(0,200,200);
+  background-color: white; /* should be inherit */
+}
+B.vimtag {
+  color: rgb(250,0,250);
+  font-weight: normal;
+}
+h1, h2 {
+  color: rgb(82,80,82);
+  text-align: center;
+}
+h3, h4, h5, h6 {
+  color: rgb(82,80,82);
+  text-shadow: 2px 2px 2px #E6E6E6;
+  margin: 0px;
+}
+.doubleline {
+  border: none 0;
+  border-top: 3px double #c00;
+  width: 40em;
+  height: 3px;
+  margin: 1em auto 1em 0;
+  text-align: left;
+}
+.singleline {
+  width: 40em;
+  margin: 1em auto 1em 0;
+  text-align: left;
+}
+.headline { color: rgb(0,137,139); }
+.header { color: rgb(164, 32, 246); }
+.section { color: rgb(164, 32, 246); }
+.keystroke { color: rgb(106, 89, 205); }
+.vim { color: rgb(0, 136, 136); }
+.example { color: rgb(0, 0, 255); }
+.option { color: rgb(0, 139, 0); }
+.special { color: rgb(106, 89, 205); }
+.notvi { color: rgb(106, 89, 205); }
+.note { color: blue; background-color: yellow; }
+.emphasis { color: blue; }
+.sub {}
+.badlink { color: rgb(0,37,39); }

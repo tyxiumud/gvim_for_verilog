@@ -1,0 +1,14 @@
+*workshop.txt*  适用于 Vim 9.0 版本。	最近更新: 2020年1月
+
+
+		  VIM 参考手册    by Bram Moolenaar
+				译者: Willis
+
+
+Sun Visual WorkShop 特性			*workshop* *workshop-support*
+
+2019 年 1 月的 8.1.0763 补丁删除了 WorkShop 的支持。此产品已有很长时间不能用，
+而且被 |NetBeans| 所替代。
+
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
