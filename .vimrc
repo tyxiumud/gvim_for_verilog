@@ -41,8 +41,8 @@ set encoding=utf-8 "文件编码
 set completeopt=menu,preview,longest "自动补全相关的设置
 "}}}
 "guifont for windows or linux{{{
-"set guifont=Monospace\ 16 "gui style for linux
-set guifont=Courier_new:h12"for windows
+set guifont=Monospace\ 10 "gui style for linux
+"set guifont=Courier_new:h12"for windows
 "}}}
 "-------------------MAP OPTION-------------------
 inoremap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
@@ -121,6 +121,7 @@ augroup filetype_vim
     autocmd!
     autocmd FileType vim setlocal foldmethod=marker
 augroup END
+execute "set fileformat=unix"
 "}}}
 "进行版权声明的设置,添加或更新头 F3 {{{
 nnoremap <F3> :call TitleDet()<cr>
