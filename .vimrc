@@ -116,7 +116,7 @@ let g:rainbow_active = 1
 nnoremap <F2> :NERDTreeMirror<CR> 
 nnoremap <F2> :NERDTreeToggle<CR>
 "}}}
-" Vimscript file settings {{{
+" Vimscript file settings 使用za对折叠进行打开关闭 {{{
 augroup filetype_vim
     autocmd!
     autocmd FileType vim setlocal foldmethod=marker
