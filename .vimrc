@@ -1,7 +1,8 @@
 "---------User define set option-----------
+"基本配置{{{
 "设置mapleader
 let mapleader = ","
-
+let maplocalleader = ",,"
 "高亮配色设置
 syntax on  "语法高亮度显示
 set t_Co=256  "开启256色支持
@@ -29,8 +30,6 @@ set nu  "显示行号
 "set relativenumber "显示相对行号
 set cursorcolumn "add cursor in column
 set cursorline "add cursor in line 
-"set guifont=Monospace\ 16 "gui style for linux
-set guifont=Courier_new:h12"for windows
 set lines=45 columns=138 "其中lines是窗口显示的行数，columns是窗口显示的列数
 set expandtab "expandtab 选项把插入的 tab 字符替换成特定数目的空格。具体空格数目跟 tabstop 选项值有关
 set tabstop=4 "tab键相当于4个空格键
@@ -40,37 +39,45 @@ set backspace=2 "使用 backspace
 set laststatus=2 "启动显示状态行
 set encoding=utf-8 "文件编码
 set completeopt=menu,preview,longest "自动补全相关的设置
-
-
+"}}}
+"guifont for windows or linux{{{
+"set guifont=Monospace\ 16 "gui style for linux
+set guifont=Courier_new:h12"for windows
+"}}}
 "-------------------MAP OPTION-------------------
-"imap
 inoremap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
-"使用CTRL L 代替 CTRL X ＋CTRL L 就是整个句子的补全
-inoremap <C-L> <C-X><C-L> 
-
-"nmap
-
-"进行版权声明的设置
-"添加或更新头
-nnoremap <F3> :call TitleDet()<cr>
-
-"对齐例化后的信息,保证你的信号名称小于55个字符，否则会有错误。将数字55修改的稍微大一些
+"对齐例化后的信息,保证你的信号名称小于55个字符，否则会有错误。将数字55修改的稍微大一些 F6{{{
 nnoremap <F6> 0i            <ESC>0dwi    <ESC>^f(i                                                                                            <ESC>^55ldwa            <ESC>bldwf)i                                                              <ESC>^f(55ldwj
-"设置快速编辑.vimrc的快捷键
-:nnoremap <leader>ev :vsplit $MYVIMRC<cr>
-:nnoremap <leader>sv :source $MYVIMRC<cr>
+"}}}
+"设置快速编辑.vimrc的快捷键 ,ev ,sv{{{
+nnoremap <leader>ev :vsplit $MYVIMRC<cr>
+nnoremap <leader>sv :source $MYVIMRC<cr>
+"}}}
+"输入输出端口 形式必须为 位宽 + 信号信号名称 使用,ii ,oo 来声明{{{
 "功能描述 输入<leader>ii <leader>oo 自动生成输入输入模板，需要输入端口信号位宽，信号名称
 nnoremap <leader>ii <ESC>0i        <ESC>0dwi    input   wire                                                                            <ESC>020li[<ESC>ldwwi                        <ESC>028li-1: 0]<ESC>wi                                                            <ESC>044ldwea                                                                                                                <ESC>089li,<ESC>0f,a                                <ESC>bldwj
 nnoremap <leader>oo <ESC>0i        <ESC>0dwi    output  wire                                            <ESC>020li[<ESC>ldwwi                        <ESC>028li-1: 0]<ESC>wi                                                            <ESC>044ldwea                                                                                                                <ESC>089li,<ESC>0f,a                                <ESC>bldwj
-"自动生成注释的模板
+"}}}
+"自动生成注释的模板 zu {{{
 inoremap zu //*************************************************\<CR>//define parameter and intennal singles<CR>//*************************************************/<CR><CR>//*************************************************\<CR>//main code<CR>//*************************************************/<CR>
+"}}}
+"设置bffer的切换 使用 Ctrl J、K、X切换或者删除 以及 ,1 ,2等进行指定buffer的切换接口{{{ 
 "切换buffer以及删除buffer
 nnoremap <C-j> :bn<CR>
 nnoremap <C-k> :bp<CR>
 nnoremap <C-x> :bwipe<CR>
-
+nnoremap <leader>1 :b1<CR>
+nnoremap <leader>2 :b2<CR>
+nnoremap <leader>3 :b3<CR>
+nnoremap <leader>4 :b4<CR>
+nnoremap <leader>5 :b5<CR>
+nnoremap <leader>6 :b6<CR>
+nnoremap <leader>7 :b7<CR>
+nnoremap <leader>8 :b8<CR>
+nnoremap <leader>9 :b9<CR>
+"}}}
 "----------------- PLUGIN -------------------
-"air-line
+"air-line {{{
 let g:airline#extensions#tabline#enabled=1 "顶部tab显示"
 let g:airline#extensions#tabline#buffer_idx_mode = 1 "显示buffer number"
 let g:airline#extensions#whitespace#enabled = 0 "清楚traling的警告"
@@ -79,7 +86,8 @@ let g:airline_left_sep = '►'
 let g:airline_left_alt_sep = '>'
 let g:airline_right_sep = '◄'
 let g:airline_right_alt_sep = '<'
-"rainbow
+"}}}
+"rainbow {{{
 let g:rainbow_active = 1
     let g:rainbow_conf = {
     \    'guifgs': ['lightmagenta', 'darkorange3', 'seagreen3', 'firebrick'],
@@ -100,11 +108,22 @@ let g:rainbow_active = 1
     \        'html': {
     \            'parentheses': ['start=/\v\<((area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr)[ >])@!\z([-_:a-zA-Z0-9]+)(\s+[-_:a-zA-Z0-9]+(\=("[^"]*"|'."'".'[^'."'".']*'."'".'|[^ '."'".'"><=`]*))?)*\>/ end=#</\z1># fold'],
     \        },
-    \        'css': 0,
     \        'nerdtree': 0, 
     \    }
     \}
-
-" NERDTree
+"}}}
+" NERDTree F2 {{{
 nnoremap <F2> :NERDTreeMirror<CR> 
 nnoremap <F2> :NERDTreeToggle<CR>
+"}}}
+" Vimscript file settings {{{
+augroup filetype_vim
+    autocmd!
+    autocmd FileType vim setlocal foldmethod=marker
+augroup END
+"}}}
+"进行版权声明的设置,添加或更新头 F3 {{{
+nnoremap <F3> :call TitleDet()<cr>
+"}}}
+"use ,ig ,im to generate instance{{{
+"}}}
