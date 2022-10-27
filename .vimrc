@@ -30,7 +30,7 @@ set nu  "显示行号
 "set relativenumber "显示相对行号
 set cursorcolumn "add cursor in column
 set cursorline "add cursor in line 
-set lines=45 columns=138 "其中lines是窗口显示的行数，columns是窗口显示的列数
+set lines=50 columns=230 "其中lines是窗口显示的行数，columns是窗口显示的列数
 set expandtab "expandtab 选项把插入的 tab 字符替换成特定数目的空格。具体空格数目跟 tabstop 选项值有关
 set tabstop=4 "tab键相当于4个空格键
 set shiftwidth=4 "换行自动变为空格
@@ -41,9 +41,10 @@ set encoding=utf-8 "文件编码
 set completeopt=menu,preview,longest "自动补全相关的设置
 "}}}
 "guifont for windows or linux{{{
-set guifont=Monospace\ 10 "gui style for linux
-"set guifont=Courier_new:h12"for windows
+"set guifont=Monospace\ 16 "gui style for linux
+set guifont=Courier_new:h12"for windows
 "}}}
+
 "-------------------MAP OPTION-------------------
 inoremap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
 "对齐例化后的信息,保证你的信号名称小于55个字符，否则会有错误。将数字55修改的稍微大一些 F6{{{
@@ -76,6 +77,7 @@ nnoremap <leader>7 :b7<CR>
 nnoremap <leader>8 :b8<CR>
 nnoremap <leader>9 :b9<CR>
 "}}}
+
 "----------------- PLUGIN -------------------
 "air-line {{{
 let g:airline#extensions#tabline#enabled=1 "顶部tab显示"
@@ -116,7 +118,7 @@ let g:rainbow_active = 1
 nnoremap <F2> :NERDTreeMirror<CR> 
 nnoremap <F2> :NERDTreeToggle<CR>
 "}}}
-" Vimscript file settings 使用za对折叠进行打开关闭 {{{
+" Vimscript file settings {{{
 augroup filetype_vim
     autocmd!
     autocmd FileType vim setlocal foldmethod=marker
@@ -128,3 +130,35 @@ nnoremap <F3> :call TitleDet()<cr>
 "}}}
 "use ,ig ,im to generate instance{{{
 "}}}
+
+"----------------- FUNCTION -------------------
+"clever tab to instead ^N{{{
+function! CleverTab()
+   if strpart( getline('.'), 0, col('.')-1 ) =~ '^\s*$'
+      return "\<Tab>"
+   else
+      return "\<C-N>"
+   endif
+endfunction
+inoremap <Tab> <C-R>=CleverTab()<CR>
+"}}}
+"Grep word attention only for linux{{{
+"nnoremap <leader>g :set operatorfunc=<SID>GrepOperator<cr>g@
+"vnoremap <leader>g :<c-u>call <SID>GrepOperator(visualmode())<cr>
+"function! s:GrepOperator(type)
+"    let saved_unnamed_register = @@
+"    if a:type ==# 'v'
+"        normal! `<v`>y
+"    elseif a:type ==# 'char'
+"        normal! `[v`]y
+"    else
+"        return
+"    endif
+"    silent execute "grep! -R " . shellescape(@@) . " ."
+"    copen
+"    let @@ = saved_unnamed_register
+"endfunction
+"}}}
+
+
+
