@@ -41,9 +41,10 @@ set encoding=utf-8 "文件编码
 set completeopt=menu,preview,longest "自动补全相关的设置
 "}}}
 "guifont for windows or linux{{{
-set guifont=Monospace\ 16 "gui style for linux
 if has('win32') || has ('win64')
     set guifont=Courier_new:h12"for windows
+else
+    set guifont=Monospace\ 16 "gui style for linux
 endif
 "}}}
 
