@@ -41,8 +41,10 @@ set encoding=utf-8 "文件编码
 set completeopt=menu,preview,longest "自动补全相关的设置
 "}}}
 "guifont for windows or linux{{{
-"set guifont=Monospace\ 16 "gui style for linux
-set guifont=Courier_new:h12"for windows
+set guifont=Monospace\ 16 "gui style for linux
+if has('win32') || has ('win64')
+    set guifont=Courier_new:h12"for windows
+endif
 "}}}
 
 "-------------------MAP OPTION-------------------
@@ -80,9 +82,9 @@ nnoremap <leader>9 :b9<CR>
 
 "----------------- PLUGIN -------------------
 "air-line {{{
-let g:airline#extensions#tabline#enabled=1 "顶部tab显示"
-let g:airline#extensions#tabline#buffer_idx_mode = 1 "显示buffer number"
-let g:airline#extensions#whitespace#enabled = 0 "清楚traling的警告"
+"let g:airline#extensions#tabline#enabled=1 "顶部tab显示"
+"let g:airline#extensions#tabline#buffer_idx_mode = 1 "显示buffer number"
+"let g:airline#extensions#whitespace#enabled = 0 "清楚traling的警告"
 
 let g:airline_left_sep = '►'
 let g:airline_left_alt_sep = '>'
@@ -159,6 +161,5 @@ inoremap <Tab> <C-R>=CleverTab()<CR>
 "    let @@ = saved_unnamed_register
 "endfunction
 "}}}
-
 
 
