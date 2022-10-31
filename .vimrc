@@ -65,11 +65,11 @@ nnoremap <leader>oo <ESC>0i        <ESC>0dwi    output  wire                    
 "自动生成注释的模板 zu {{{
 inoremap zu //*************************************************\<CR>//define parameter and intennal singles<CR>//*************************************************/<CR><CR>//*************************************************\<CR>//main code<CR>//*************************************************/<CR>
 "}}}
-"设置bffer的切换 使用 Ctrl J、K、X切换或者删除 以及 ,1 ,2等进行指定buffer的切换接口{{{ 
+"设置bffer的切换 使用 Ctrl J、K、H切换或者删除 以及 ,1 ,2等进行指定buffer的切换接口{{{ 
 "切换buffer以及删除buffer
 nnoremap <C-j> :bn<CR>
 nnoremap <C-k> :bp<CR>
-nnoremap <C-x> :bwipe<CR>
+nnoremap <C-h> :bwipe<CR>
 nnoremap <leader>1 :b1<CR>
 nnoremap <leader>2 :b2<CR>
 nnoremap <leader>3 :b3<CR>
@@ -83,9 +83,9 @@ nnoremap <leader>9 :b9<CR>
 
 "----------------- PLUGIN -------------------
 "air-line {{{
-"let g:airline#extensions#tabline#enabled=1 "顶部tab显示"
-"let g:airline#extensions#tabline#buffer_idx_mode = 1 "显示buffer number"
-"let g:airline#extensions#whitespace#enabled = 0 "清楚traling的警告"
+let g:airline#extensions#tabline#enabled=1 "顶部tab显示"
+let g:airline#extensions#tabline#buffer_idx_mode = 1 "显示buffer number"
+let g:airline#extensions#whitespace#enabled = 0 "清楚traling的警告"
 
 let g:airline_left_sep = '►'
 let g:airline_left_alt_sep = '>'
