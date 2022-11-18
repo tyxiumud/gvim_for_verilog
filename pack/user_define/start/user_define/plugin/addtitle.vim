@@ -16,7 +16,11 @@ function AddTitle()
     call append(13,"module ".toupper(expand("%:t:r"))."(")
     call append(14,"")
     call append(15,");")
-    call append(16,"endmodule")
+    call append(16,"//*********************define parameter and intennal singles*********************")
+    call append(17,"")
+    call append(18,"//*****************************main code****************************************")
+    call append(19,"")
+    call append(20,"endmodule")
     echohl WarningMsg | echo "Successful in adding the copyright." | echohl None
 endf
 "更新最近修改时间和文件名
@@ -46,5 +50,4 @@ function TitleDet()
     endwhile
     call AddTitle()
 endfunction
-"}}}
 

@@ -1,3 +1,4 @@
+"使用za进行打开关闭折叠
 "---------User define set option-----------
 "基本配置{{{
 "设置mapleader
@@ -95,8 +96,8 @@ let g:airline_right_alt_sep = '<'
 "rainbow {{{
 let g:rainbow_active = 1
     let g:rainbow_conf = {
-    \    'guifgs': ['lightmagenta', 'darkorange3', 'seagreen3', 'firebrick'],
-    \    'ctermfgs': ['darkblue', 'lightyellow', 'lightcyan', 'lightmagenta'],
+    \    'guifgs': ['cyan', 'yellow', 'lightred', 'lightgreen','lightyellow','magenta'],
+    \    'ctermfgs': ['cyan', 'yellow', 'lightred', 'lightgreen','lightyellow','magenta'],
     \    'operators': '_,_',
     \    'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
     \    'separately': {
@@ -131,36 +132,41 @@ execute "set fileformat=unix"
 "进行版权声明的设置,添加或更新头 F3 {{{
 nnoremap <F3> :call TitleDet()<cr>
 "}}}
-"use ,ig ,im to generate instance{{{
+"use ,in to generate instance{{{
+"}}}
+"use ,tb to generate testbench_file{{{
 "}}}
 
 "----------------- FUNCTION -------------------
 "clever tab to instead ^N{{{
-function! CleverTab()
-   if strpart( getline('.'), 0, col('.')-1 ) =~ '^\s*$'
-      return "\<Tab>"
-   else
-      return "\<C-N>"
-   endif
-endfunction
-inoremap <Tab> <C-R>=CleverTab()<CR>
+"function! CleverTab()
+"   if strpart( getline('.'), 0, col('.')-1 ) =~ '^\s*$'
+"      return "\<Tab>"
+"   else
+"      return "\<C-N>"
+"   endif
+"endfunction
+"inoremap <Tab> <C-R>=CleverTab()<CR>
 "}}}
 "Grep word attention only for linux{{{
-"nnoremap <leader>g :set operatorfunc=<SID>GrepOperator<cr>g@
-"vnoremap <leader>g :<c-u>call <SID>GrepOperator(visualmode())<cr>
-"function! s:GrepOperator(type)
-"    let saved_unnamed_register = @@
-"    if a:type ==# 'v'
-"        normal! `<v`>y
-"    elseif a:type ==# 'char'
-"        normal! `[v`]y
-"    else
-"        return
-"    endif
-"    silent execute "grep! -R " . shellescape(@@) . " ."
-"    copen
-"    let @@ = saved_unnamed_register
-"endfunction
+if has('win32') || has ('win64')
+else
+    nnoremap <leader>g :set operatorfunc=<SID>GrepOperator<cr>g@
+    vnoremap <leader>g :<c-u>call <SID>GrepOperator(visualmode())<cr>
+endif
+function! s:GrepOperator(type)
+    let saved_unnamed_register = @@
+    if a:type ==# 'v'
+        normal! `<v`>y
+    elseif a:type ==# 'char'
+        normal! `[v`]y
+    else
+        return
+    endif
+    silent execute "grep! -R " . shellescape(@@) . " ."
+    copen
+    let @@ = saved_unnamed_register
+endfunction
 "}}}
 
 
