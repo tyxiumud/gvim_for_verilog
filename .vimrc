@@ -133,8 +133,10 @@ execute "set fileformat=unix"
 nnoremap <F3> :call TitleDet()<cr>
 "}}}
 "use ,in to generate instance{{{
+nnoremap <leader>in :call Autoinstance()<cr>
 "}}}
 "use ,tb to generate testbench_file{{{
+nnoremap <leader>tb :call Autotb()<cr>
 "}}}
 
 "----------------- FUNCTION -------------------
