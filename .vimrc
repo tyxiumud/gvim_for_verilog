@@ -140,16 +140,6 @@ nnoremap <leader>tb :call Autotb()<cr>
 "}}}
 
 "----------------- FUNCTION -------------------
-"clever tab to instead ^N{{{
-"function! CleverTab()
-"   if strpart( getline('.'), 0, col('.')-1 ) =~ '^\s*$'
-"      return "\<Tab>"
-"   else
-"      return "\<C-N>"
-"   endif
-"endfunction
-"inoremap <Tab> <C-R>=CleverTab()<CR>
-"}}}
 "Grep word attention only for linux{{{
 if has('win32') || has ('win64')
 else
@@ -170,5 +160,32 @@ function! s:GrepOperator(type)
     let @@ = saved_unnamed_register
 endfunction
 "}}}
+"""ale for syntax check {{{
+"确认你的linter那些是可用的
+let b:ale_linters = ['iverilog']
+let g:ale_sign_error = '>>'
+let g:ale_sign_warning = '--'
+" Set this. Airline will handle the rest.
+let g:airline#extensions#ale#enabled = 1
+function! LinterStatus() abort
+    let l:counts = ale#statusline#Count(bufnr(''))
 
+    let l:all_errors = l:counts.error + l:counts.style_error
+    let l:all_non_errors = l:counts.total - l:all_errors
+
+    return l:counts.total == 0 ? 'OK' : printf(
+    \   '%dW %dE',
+    \   all_non_errors,
+    \   all_errors
+    \)
+endfunction
+
+set statusline=%{LinterStatus()}
+let g:ale_echo_msg_error_str = 'E'
+let g:ale_echo_msg_warning_str = 'W'
+let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
+" Write this in your vimrc file
+let g:ale_set_loclist = 0
+let g:ale_set_quickfix = 1
+"""
 

@@ -792,6 +792,7 @@ fun! Vlog_Inst_Gen()
     let port_io_list = []
     let analysis_head_result = <SID>Analysis_Module_Head(module_num, merged_head_list, module_name_list, 
                 \   para_list, vlog_95_flag_list, port_list, port_i_list, port_o_list, port_io_list)
+    echo analysis_head_result
     if analysis_head_result != 0
         echohl ErrorMsg
         echo "Error ".analysis_head_result.": when analysis module head."
