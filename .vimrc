@@ -63,9 +63,6 @@ nnoremap <leader>sv :source $MYVIMRC<cr>
 nnoremap <leader>ii <ESC>0i        <ESC>0dwi    input   wire                                                                            <ESC>020li[<ESC>ldwwi                        <ESC>028li-1: 0]<ESC>wi                                                            <ESC>044ldwea                                                                                                                <ESC>089li,<ESC>0f,a                                <ESC>bldwj
 nnoremap <leader>oo <ESC>0i        <ESC>0dwi    output  wire                                            <ESC>020li[<ESC>ldwwi                        <ESC>028li-1: 0]<ESC>wi                                                            <ESC>044ldwea                                                                                                                <ESC>089li,<ESC>0f,a                                <ESC>bldwj
 "}}}
-"自动生成注释的模板 zu {{{
-inoremap zu //*************************************************\<CR>//define parameter and intennal singles<CR>//*************************************************/<CR><CR>//*************************************************\<CR>//main code<CR>//*************************************************/<CR>
-"}}}
 "设置bffer的切换 使用 Ctrl J、K、H切换或者删除 以及 ,1 ,2等进行指定buffer的切换接口{{{ 
 "切换buffer以及删除buffer
 nnoremap <C-j> :bn<CR>
