@@ -148,9 +148,9 @@ function! s:GrepOperator(type)
     let @@ = saved_unnamed_register
 endfunction
 "}}}
-"""ale for syntax check {{{
+"ale for syntax check {{{
 "确认你的linter那些是可用的
-let b:ale_linters = ['iverilog']
+let b:ale_linters = ['xvlog']
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '--'
 " Set this. Airline will handle the rest.
@@ -175,5 +175,6 @@ let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 " Write this in your vimrc file
 let g:ale_set_loclist = 0
 let g:ale_set_quickfix = 1
-"""
-
+let g:ale_open_list = 1
+let g:ale_keep_list_window_open = 1
+"}}}
