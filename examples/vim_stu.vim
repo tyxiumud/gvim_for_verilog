@@ -1,5 +1,7 @@
+"Vimscript与旧式Python接口的学习示例，不作为插件自动加载
 nnoremap <leader>tt :call Sum(x,y)<cr>
 nnoremap <leader>ss :source %<cr>
+
 function! IcecreamInitialize()
 python << EOF
 class StrawberryIcecream:
@@ -15,6 +17,3 @@ endfunction
 let x = 2
 let y = 3
 let ret = Sum(x,y)
-
-
-

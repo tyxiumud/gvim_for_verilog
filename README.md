@@ -1,148 +1,227 @@
-> gvim_for_verilog 仓库是用于分享适用于Verilog的VIM配置方案，重点在于简洁使用，开箱即用！！！有问题以及改进欢迎提PR，或者直接联系作者邮箱823300630@qq.com
+# GVim for Verilog
 
->本文将详细描述将vim变成写Verilog代码的IDE客制化的实现过程，同时最后提供自己的环境。实现的过程中有使用自己写的，也有参考借鉴其他同学进行一定的修改，也有直接使用插件实现的相关功能。对应的功能实现部分均会给出相应的参考与插件地址等有关该功能的实现信息。有兴趣的同学可以据此，在此基础上实现适合自己的IDE工具。
+一套面向 Verilog 日常开发的 Vim/GVim 配置。项目把常用配置和插件直接放在仓库中，安装后即可获得文件树、状态栏、括号补全、端口生成、模块实例化和 `xvlog` 语法检查等功能。
 
-> 都是慢慢抄，慢慢学，慢慢修改，千万记得自己总结，抄到的才是自己的~
-# 目录<!-- omit in toc -->
-- [概述](#概述)
-  - [特性（Feature）](#特性feature)
-  - [效果演示](#效果演示)
-- [使用方式](#使用方式)
-- [实现与演示](#实现与演示)
-  - [基本的映射](#基本的映射)
-  - [快速生成端口列表（input、output）](#快速生成端口列表inputoutput)
-  - [插件的使用与推荐](#插件的使用与推荐)
-  - [NERDTREE\[树形目录\]的安装与使用](#nerdtree树形目录的安装与使用)
-    - [功能描述](#功能描述)
-    - [演示](#演示)
-    - [安装与配置](#安装与配置)
-  - [自动实例化脚本](#自动实例化脚本)
-    - [功能描述](#功能描述-1)
-    - [演示](#演示-1)
-    - [安装与配置](#安装与配置-1)
-  - [状态栏美化插件-airline](#状态栏美化插件-airline)
-    - [功能描述](#功能描述-2)
-    - [演示](#演示-2)
-    - [安装与配置](#安装与配置-2)
-  - [括号自动补全插件-auto\_pairs](#括号自动补全插件-auto_pairs)
-    - [功能描述](#功能描述-3)
-    - [演示](#演示-3)
-    - [安装与配置](#安装与配置-3)
-  - [彩虹括号-rainbow](#彩虹括号-rainbow)
-    - [功能描述](#功能描述-4)
-    - [演示](#演示-4)
-    - [安装与配置](#安装与配置-4)
-- [其他Tips](#其他tips)
+本项目优先考虑简单、离线可用和容易修改。你可以直接使用完整配置，也可以只挑选需要的映射、函数或插件。
 
-# 概述
-本文将分享使用gvim写verilog一系列的方便编码工具，将vim打造成一个IDE（IDE 是 Integrated Development Environment 的缩写，中文称为集成开发环境，用来表示辅助程序员开发的应用软件，是它们的一个总称。）目的是**使得编码过程中任何让你觉得繁琐的，重复性劳动，全部交给工具做，帮助更快更好的实现你的目标**。这里笔者个人经验感觉哈，若是有些你觉得感觉繁琐的，愚蠢的操作，一定时没有使用正确的方式去做这件事~可以思考优化下做事的方式
-关于VIM的版本建议**linux下使用8.2以上的版本，windows使用最新的版本**。更高的版本VIM进行了很多优化，其中重要的两个：1，支持插件管理（可以使得使用管理插件的方式更为便捷） 2，加入了异步执行命令的机制。关于版本的问题更详细的可以查看vim.org上有关版本更新的日志。这里不多进行赘述。这里使用自带的插件管理主要是为了保证在不能联网的时候也可以很方便的使用。
+![GVim for Verilog 完整效果](img/cfg_show.png)
 
-## 特性（Feature）
-组为个性化的定制，笔者定义实现的所有功能如下所示：
- - 基本的映射
- - 快速生成端口列表（input、output）
- - 自动生成实例化模板，自动对齐实
- - 定义版权，作者，模块名称
- - 状态栏配置，buffer栏的快速切换，删除
- - 括号自动补全，括号颜色特征不同
- - 目录结构显示
- - 中文doc文件代替
- - 查找单词在当前目录下其他文件下的使用位置
- - 自动仿真脚本模板
- - 自动实现顶层集成
- - 自动生成端口列表
- - 基本的语法检查功能
+## 主要功能
 
-## 效果演示
-下图是展示vim的完整配置使用展示图（Windows环境下），包括文本编辑区的代码高亮，括号高亮等，buffer的展示，代码error，warning的展示，状态栏的信息展示，中文doc文件展示，文件目录窗口等（下图的演示不完全包括上述提出的功能点）。
+- Verilog 语法高亮和常用编辑选项
+- NERDTree 文件树与 Airline 状态栏
+- 自动补全括号和彩虹括号
+- 快速生成 `input`、`output` 端口声明
+- 添加或更新文件头、模块名和修改时间
+- 生成模块实例化模板和 testbench 骨架
+- 使用 ALE 调用 Vivado `xvlog` 进行语法检查
+- Buffer 快速切换、关闭以及跨文件搜索
+- 可选的 Vim 中文帮助文档
 
-![完整配置展示](img/cfg_show.png)
+## 使用前须知
 
-# 使用方式
-对于linux用户：
+建议使用 Vim/GVim 8.2 或更高版本。开始安装前，请注意以下依赖和配置行为：
 
-- 1，输入 `cd ~ `然后` gvim .vimrc`，将提供的配置文件`.vimrc`中的配置粘贴到该文件中，键入`:wq`即可。
-- 2，输入 `cd ~/.vim`,将pack复制到该目录下
+- 语法检查依赖外部 Verilog 工具；仓库示例使用 Vivado `xvlog`，不同电脑可以自行选择。详见 [ALE 使用指南](docs/ale.md)。
+- `,in` 和 `,tb` 是项目自行编写的生成脚本，当前使用 Vim 的旧式 `:python` 接口。环境要求、用法和限制详见 [自定义生成脚本说明](docs/custom-generators.md)。
+- 当前 `.vimrc` 禁用了 swap、backup 和持久化 undo 文件。请先保存或备份自己的原配置，再决定是否保留这些选项。
+- 窗口大小和字体使用了预设值，不适合当前屏幕时可在 `.vimrc` 中修改 `lines`、`columns` 和 `guifont`。
+- 本仓库已附带插件，不需要额外安装插件管理器。
 
-对于windows用户：
-- 1，打开gvim的安装路径，可以看到`_vimrc`文件，就是GVIM的配置文件。将.vimrc中的内容复制到_vimrc中即可
-- 2，打开gvim安装的根目录，会有一个pack文件，将库里pack目录下的文件夹复制到vim的根目录pack文件夹下即可使用这些插件，担心会对VIM有很大影响的可以删除对应的插件即可。或是将其放置到opt目录下，更详细的使用方式见VIM的官方指南（:help package）。
+## 快速安装
 
-同时本库还提供了对应配置使用的插件，对应的插件及其功能演示在下文会进行介绍。注意使用的时候确保你的VIM版本在8.0及以上。
+安装的核心只有两部分：合并 `.vimrc`，然后把仓库中的 `pack` 目录放到 Vim 的 package 路径下。
 
-# 实现与演示
-## 基本的映射
-这部分就是除去函数，复杂映射之外，更为基础的vimrc配置。关于vimrc以及映射的介绍请参见[GVIM基础教程——vimscript编程初步](https://blog.csdn.net/qq_41467882/article/details/127397701?spm=1001.2014.3001.5501)，下图是基本的配置图，所有的配置与使用方式均有相关的注释。
+### Linux
 
-![我的vimrc配置](img/my_vimrc.png)
+1. 备份已有的 `~/.vimrc`。
+2. 将仓库中的 `.vimrc` 内容合并到 `~/.vimrc`；没有个人配置时也可以直接复制。
+3. 将仓库中的整个 `pack` 目录复制到 `~/.vim/`。
 
- - 实现了将`jk`映射到`ESC`。这是唯一的基本映射 
- - 快速编辑执行vimrc配置的快捷键
+安装后的 ALE 入口应位于：
+
+```text
+~/.vim/pack/ale/start/ale/plugin/ale.vim
 ```
-nnoremap <leader>ev :vsplit $MYVIMRC<cr>
-nnoremap <leader>sv :source $MYVIMRC<cr>
+
+### Windows
+
+1. 在 GVim 中执行 `:echo $HOME`，确认用户目录。
+2. 备份已有的 `_vimrc`，再将仓库中的 `.vimrc` 内容合并进去。常见位置是 `%USERPROFILE%\_vimrc`。
+3. 将仓库中的整个 `pack` 目录复制到 `%USERPROFILE%\vimfiles\`。
+
+安装后的 ALE 入口通常位于：
+
+```text
+%USERPROFILE%\vimfiles\pack\ale\start\ale\plugin\ale.vim
 ```
- - 添加折叠功能，使得整体配置看起来相对独立清晰。移动到折叠的行，使用`za`可以打开关闭折叠。
 
-注： \<leader>键盘映射功能.键盘映射方法可以使得我们使用一个按键具有一个新的功能，但是他会将按键原有的功能覆盖掉。vim提供了leader来解决这个问题。我们称这个“前缀”为“leader”。你可以按你的喜好设置你的leader键。运行命令：  
-:let mapleader = ","  
-你可以替换,为你喜欢的按键。推荐使用,，因为这个键比较 比较容易按到。当你创建新的映射时，你可以使用<leader>表示“我设置的leader按键”。前面的博文中也有解释！！！
+如果使用的是 GVim 安装目录中的 `vimfiles`，可以执行 `:echo &packpath` 查看 Vim 实际搜索的 package 路径。选择其中一个路径安装即可，不必在多个位置重复复制。
 
-## 快速生成端口列表（input、output）
-在编码的时候，我们已经有了接口信息，一般在设计详述中包括位宽，信号名称，输入输出，功能描述这些信息，我们只需要将这些信息经过简单的处理，即可简单的实现端口的定义。处理的形式如上图功能演示部分的形式。这个功能很简单，具体实现使用的是较为复杂的映射来实现的。可自行参考配置实现的方式。  
-![input_gen](img/input_gen.png)
-可以理解为上述命令是把一连串常规的键盘命令映射成一个按键`,ii`或者是`,oo`。在vimrc中`<cr>`表示回车的意思，`M`表示`Alt`的意思，`C`表示`Ctrl`的意思  
-演示如下图所示  
-![input_gen_show](img/input_gen_show.gif)
-**注意：**
-- 结合宏命令可以实现更实用的操作,录制宏命令,然后选择执行次数，即可实现如下的效果：
+## 安装验证
 
-![](img/input_gen_show_with_hong.gif)
-- 使用如下命令即可将`[1      -1: 0]`替换为空格，更加美观`:%s/\[1      -1: 0\]/              /g`
-## 插件的使用与推荐
-##  NERDTREE[树形目录]的安装与使用
-###  功能描述
-打开一个文件树，方便使用鼠标或是光标进行打开文件的选择
-###  演示
+重新启动 Vim/GVim，然后依次执行：
 
-###  安装与配置
-插件地址：https://www.vim.org/scripts/script.php?script_id=1658
+```vim
+:echo v:version
+:echo exists(':NERDTreeToggle')
+:echo exists(':ALEInfo')
+:echo executable('xvlog')
+```
 
-##  自动实例化脚本
-###  功能描述
-对你的verilog文件产生一个实例化模板，方便再更高的层次进行实例化调用
-###  演示
+- 两个 `exists()` 返回 `2`，表示 NERDTree 和 ALE 已加载。
+- `executable('xvlog')` 返回 `1`，表示 ALE 可以找到 Vivado 的 `xvlog`。
+- 执行 `:ALEInfo` 可以查看当前文件使用的 linter 和完整诊断信息。
 
-###  安装与配置
-插件地址：https://www.vim.org/scripts/script.php?script_id=4151
+使用 Python 版实例化和 testbench 生成功能前，还可以执行：
 
-##  状态栏美化插件-airline
-### 功能描述
-对状态栏进行美化，主要使用该功能在多个缓冲区进行跳转
-###  演示
+```vim
+:echo has('python')
+```
 
-### 安装与配置
-插件地址：
+返回 `1` 才表示当前 Vim 支持 `,in` 和 `,tb` 所需的接口。
 
-##  括号自动补全插件-auto_pairs
-###  功能描述
-自动补全括号，搭配rainbow，可以清楚的展示括号之间的关系
-### 演示
+## 快捷键速查
 
-### 安装与配置
-插件地址：https://github.com/jiangmiao/auto-pairs
-##  彩虹括号-rainbow
-###  功能描述
-使得每一个括号有不同的颜色，在多个括号有重叠的时候清楚的区分每一个括号所表示的范围
-### 演示
+默认 `<leader>` 是英文逗号 `,`。
 
-### 安装与配置
-插件地址：https://github.com/luochen1990/rainbow
+| 快捷键 | 模式 | 功能 |
+| --- | --- | --- |
+| `jk` | 插入模式 | 退出插入模式，并向右补偿光标位置 |
+| `F2` | 普通模式 | 打开或关闭 NERDTree 文件树 |
+| `F3` | 普通模式 | 添加文件头；已有文件头时更新文件名和修改时间 |
+| `F6` | 普通模式 | 对齐实例化端口，默认要求信号名短于 55 个字符 |
+| `,ev` | 普通模式 | 分屏打开当前 Vim 配置 |
+| `,sv` | 普通模式 | 重新加载当前 Vim 配置 |
+| `,ii` | 普通模式 | 根据“位宽 信号名”生成 `input wire` 声明 |
+| `,oo` | 普通模式 | 根据“位宽 信号名”生成 `output wire` 声明 |
+| `,in` | 普通模式 | 使用 Python 脚本生成模块实例化模板 |
+| `,tb` | 普通模式 | 使用 Python 脚本生成 testbench 骨架 |
+| `,ig` | 普通模式 | 使用 `vlog_inst_gen` 插件生成实例化模板 |
+| `,im` | 普通模式 | 切换 `vlog_inst_gen` 的输出模式 |
+| `Ctrl-j` | 普通模式 | 切换到下一个 Buffer |
+| `Ctrl-k` | 普通模式 | 切换到上一个 Buffer |
+| `Ctrl-h` | 普通模式 | 关闭当前 Buffer |
+| `,g` + 动作/选择 | 普通/可视模式 | 在当前目录递归搜索选中的单词，仅 Linux 启用 |
 
-# 其他Tips
-- 在`.vimrc`中`<cr>`表示回车的意思，`M`表示`Alt`的意思，`C`表示`Ctrl`的意思
-- 任意自加数的生成
-- 遇见插件在linux下报错^M的问题
-- 注意将Tab替换为空格键
-- 查看vim版本，支持的接口等
+Vim 配置文件使用 marker 折叠。在带有 `{{{` 标记的配置段上按 `za`，可以展开或收起该段。
+
+## 功能演示
+
+### 快速生成端口声明
+
+准备一行“位宽 信号名”形式的文本，例如：
+
+```text
+8 data_i
+```
+
+将光标放在该行，按 `,ii` 或 `,oo`，即可生成对应的输入或输出端口声明。
+
+![端口生成规则](img/input_gen.png)
+
+![端口生成演示](img/input_gen_show.gif)
+
+结合 Vim 宏可以一次处理多行端口：
+
+![使用宏批量生成端口](img/input_gen_show_with_hong.gif)
+
+如果位宽为 1，生成结果中可能出现 `[1      -1: 0]`。可以使用下面的替换命令将其替换为空白：
+
+```vim
+:%s/\[1      -1: 0\]/              /g
+```
+
+### 文件头和模块骨架
+
+在新文件中按 `F3`，会添加作者、文件名、修改时间、模块名和基础代码分区。再次按 `F3` 时，只更新文件名和修改时间。
+
+模块名默认取当前文件名，并转换为大写。需要不同命名规则时，可以修改 `pack/user_define/start/user_define/plugin/addtitle.vim`。
+
+### 模块实例化
+
+项目提供两套实例化方式：
+
+- `,in`：自定义 Python 实现，在新标签页中生成实例化内容。
+- `,ig`：`vlog_inst_gen` 的 Vimscript 实现，不依赖 Vim 的 Python 接口；使用 `,im` 可以切换复制、分屏显示或更新文件等输出模式。
+
+脚本主要面向 Verilog-2001 风格的模块端口。复杂宏、特殊参数表达式或一个文件内存在多个模块时，请生成后检查结果。
+
+`,in`、`,tb` 的输入格式、生成内容和后续优化计划见 [自定义实例化与 Testbench 生成脚本](docs/custom-generators.md)。
+
+### 编辑界面
+
+`F2` 控制文件树，Airline 在顶部显示 Buffer，并在底部显示状态信息。自动括号和 Rainbow 用不同颜色展示嵌套括号。
+
+![Vim 配置示例](img/my_vimrc.png)
+
+## 内置插件
+
+| 目录 | 用途 |
+| --- | --- |
+| `pack/ale/start/ale` | 异步语法检查，当前配置使用 `xvlog` |
+| `pack/NERD_tree/start/NERD_tree` | 文件树 |
+| `pack/vim_airline_master/start` | 状态栏、Buffer 标签及主题 |
+| `pack/auto_pairs_master/start/auto_pairs_master` | 括号自动补全 |
+| `pack/rainbow/start/rain_bow` | 彩虹括号 |
+| `pack/user_define/start/user_define` | 文件头、实例化和 testbench 等自定义功能 |
+| `pack/vlog_inst_gen/start/vlog_inst_gen` | Vimscript 版 Verilog 实例化工具 |
+| `pack/vimcdoc/opt/vimcdoc` | 可选的 Vim 中文帮助 |
+
+`vimcdoc` 位于 `opt` 目录，不会自动加载。需要中文帮助时执行：
+
+```vim
+:packadd vimcdoc
+```
+
+## 使用教程
+
+- [ALE 与 Verilog 检查器使用指南](docs/ale.md)：说明不同检查器环境、Buffer/全局作用域、常用命令和排查步骤。
+- [自定义实例化与 Testbench 生成脚本](docs/custom-generators.md)：说明 `,in`、`,tb` 的运行环境、输入格式、当前限制和后续优化方向。
+
+## 常见问题
+
+### ALE 没有显示诊断
+
+先执行 `:echo exists(':ALEInfo')`。如果返回 `0`，请检查 `pack/ale/start/ale` 的目录层级；如果 ALE 已加载，再执行 `:ALEInfo` 和 `:echo executable('xvlog')` 检查 Vivado 环境。完整步骤见 [ALE 使用指南](docs/ale.md)。
+
+### 执行 `,in` 或 `,tb` 提示 Python 错误
+
+执行 `:echo has('python')`。返回 `0` 表示当前 Vim 没有旧式 Python 接口，可以改用 `,ig`。脚本现状和迁移计划见 [自定义生成脚本说明](docs/custom-generators.md)。
+
+### 出现 `^M` 或换行符错误
+
+通常是 Windows 与 Linux 换行格式混用导致。打开对应文件后执行：
+
+```vim
+:set fileformat=unix
+:write
+```
+
+如果行尾的 `^M` 已经成为文件内容，可先执行 `:%s/\r$//` 再保存。
+
+### 窗口或字体不合适
+
+在 `.vimrc` 中搜索 `lines`、`columns` 和 `guifont`，按自己的显示器、系统字体和缩放比例修改。
+
+### 不希望禁用备份文件
+
+删除或注释 `.vimrc` 中的 `set noundofile`、`set nobackup` 和 `set noswapfile`，再根据自己的习惯配置 undo、backup 和 swap 目录。
+
+## 插件来源与致谢
+
+- [ALE](https://github.com/dense-analysis/ale)
+- [NERDTree](https://www.vim.org/scripts/script.php?script_id=1658)
+- [vim-airline](https://github.com/vim-airline/vim-airline)
+- [auto-pairs](https://github.com/jiangmiao/auto-pairs)
+- [rainbow](https://github.com/luochen1990/rainbow)
+- [vimcdoc](https://github.com/yianwillis/vimcdoc)
+- [vlog_inst_gen](https://www.vim.org/scripts/script.php?script_id=4151)
+
+各插件的版权和许可信息以对应插件目录中的说明为准。
+
+## 交流与贡献
+
+欢迎提交 Issue 或 Pull Request。也可以通过邮箱 `823300630@qq.com` 联系作者。
+
+个人网站：<https://tyxiumud.github.io/>

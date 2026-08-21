@@ -1,25 +1,35 @@
 "使用za进行打开关闭折叠
 "---------User define set option-----------
+set nocompatible "必须在加载filetype和插件前关闭Vi兼容模式
 "基本配置{{{
 "设置mapleader
 let mapleader = ","
 let maplocalleader = ",,"
 "高亮配色设置
-syntax on  "语法高亮度显示
+if !exists('g:syntax_on')
+    syntax on  "语法高亮度显示
+endif
+filetype plugin indent on "启用文件类型插件与缩进规则
 set t_Co=256  "开启256色支持
 set hlsearch  "搜索设置高亮
-colorscheme desert "配色方案
-set background=dark "配置主题整体的色调，只有两个选择：dark和light（暗色调和亮色调）
+if get(g:, 'colors_name', '') !=# 'desert'
+    colorscheme desert "配色方案
+endif
+if &background !=# 'dark'
+    set background=dark "配置主题整体的色调，只有两个选择：dark和light（暗色调和亮色调）
+endif
 highlight Function cterm=bold,underline ctermbg=red ctermfg=green "color set
 
 "屏蔽相关功能设置
-set nocompatible "不兼容vi 
 set noerrorbells " 不让vim发出讨厌的滴滴声 
-set shortmess=ati " 启动的时候不显示那个援助索马里儿童的提示 
-set novisualbell "不要闪烁
+set shortmess+=I "启动时不显示Vim介绍信息
 "关闭各种按键叮叮声音和闪屏
-set vb t_vb=
-au GuiEnter * set t_vb=
+set visualbell
+set t_vb=
+augroup silent_bells
+    autocmd!
+    autocmd GuiEnter * set t_vb=
+augroup END
 
 "禁止相关文件的产生
 set noundofile "禁止un~文件
@@ -31,7 +41,6 @@ set nu  "显示行号
 "set relativenumber "显示相对行号
 set cursorcolumn "add cursor in column
 set cursorline "add cursor in line 
-set lines=50 columns=230 "其中lines是窗口显示的行数，columns是窗口显示的列数
 set expandtab "expandtab 选项把插入的 tab 字符替换成特定数目的空格。具体空格数目跟 tabstop 选项值有关
 set tabstop=4 "tab键相当于4个空格键
 set shiftwidth=4 "换行自动变为空格
@@ -41,17 +50,20 @@ set laststatus=2 "启动显示状态行
 set encoding=utf-8 "文件编码
 set completeopt=menu,preview,longest "自动补全相关的设置
 "}}}
-"guifont for windows or linux{{{
-if has('win32') || has ('win64')
-    set guifont=Courier_new:h12"for windows
-else
-    set guifont=Monospace\ 16 "gui style for linux
+"GVim窗口与字体设置{{{
+if has('gui_running')
+    set lines=50 columns=230
+    if has('win32') || has ('win64')
+        set guifont=Courier_new:h12 "for windows
+    else
+        set guifont=Monospace\ 16 "gui style for linux
+    endif
 endif
 "}}}
 
 "-------------------MAP OPTION-------------------
-"在编辑模式下使用jk替代ESC进入命令模式，并保持原有光标行为
-inoremap jk <ESC> g,
+"在编辑模式下使用jk替代ESC，并向右补偿退出插入模式时的光标移动
+inoremap jk <ESC>l
 "对齐例化后的信息,保证你的信号名称小于55个字符，否则会有错误。将数字55修改的稍微大一些 F6{{{
 nnoremap <F6> 0i            <ESC>0dwi    <ESC>^f(i                                                                                            <ESC>^55ldwa            <ESC>bldwf)i                                                              <ESC>^f(55ldwj
 "}}}
@@ -115,7 +127,6 @@ augroup filetype_vim
     autocmd!
     autocmd FileType vim setlocal foldmethod=marker
 augroup END
-execute "set fileformat=unix"
 "}}}
 "进行版权声明的设置,添加或更新头 F3 {{{
 nnoremap <F3> :call TitleDet()<cr>
@@ -149,26 +160,12 @@ function! s:GrepOperator(type)
 endfunction
 "}}}
 "ale for syntax check {{{
-"确认你的linter那些是可用的
+"仅指定当前Buffer使用xvlog；其他环境和作用域配置见docs/ale.md
 let b:ale_linters = ['xvlog']
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '--'
-" Set this. Airline will handle the rest.
+"Airline负责显示ALE状态
 let g:airline#extensions#ale#enabled = 1
-function! LinterStatus() abort
-    let l:counts = ale#statusline#Count(bufnr(''))
-
-    let l:all_errors = l:counts.error + l:counts.style_error
-    let l:all_non_errors = l:counts.total - l:all_errors
-
-    return l:counts.total == 0 ? 'OK' : printf(
-    \   '%dW %dE',
-    \   all_non_errors,
-    \   all_errors
-    \)
-endfunction
-
-set statusline=%{LinterStatus()}
 let g:ale_echo_msg_error_str = 'E'
 let g:ale_echo_msg_warning_str = 'W'
 let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
