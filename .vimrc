@@ -50,7 +50,8 @@ endif
 "}}}
 
 "-------------------MAP OPTION-------------------
-inoremap jk <ESC> g,"在编辑模式下使用jk替代ESC进入命令模式
+"在编辑模式下使用jk替代ESC进入命令模式，并保持原有光标行为
+inoremap jk <ESC> g,
 "对齐例化后的信息,保证你的信号名称小于55个字符，否则会有错误。将数字55修改的稍微大一些 F6{{{
 nnoremap <F6> 0i            <ESC>0dwi    <ESC>^f(i                                                                                            <ESC>^55ldwa            <ESC>bldwf)i                                                              <ESC>^f(55ldwj
 "}}}
@@ -107,7 +108,6 @@ let g:rainbow_active = 1
     \}
 "}}}
 " NERDTree F2 {{{
-nnoremap <F2> :NERDTreeMirror<CR> 
 nnoremap <F2> :NERDTreeToggle<CR>
 "}}}
 " Vimscript file settings {{{
