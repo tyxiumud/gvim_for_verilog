@@ -23,7 +23,7 @@
 建议使用 Vim/GVim 8.2 或更高版本。开始安装前，请注意以下依赖和配置行为：
 
 - 语法检查依赖外部 Verilog 工具；仓库示例使用 Vivado `xvlog`，不同电脑可以自行选择。详见 [ALE 使用指南](docs/ale.md)。
-- `,in` 和 `,tb` 是项目自行编写的生成脚本，当前使用 Vim 的旧式 `:python` 接口。环境要求、用法和限制详见 [自定义生成脚本说明](docs/custom-generators.md)。
+- `,in` 是纯 Vimscript 实例化生成器；`,tb` 仍使用 Vim 的旧式 `:python` 接口。环境要求、用法和限制详见 [自定义生成脚本说明](docs/custom-generators.md)。
 - 当前 `.vimrc` 禁用了 swap、backup 和持久化 undo 文件。请先保存或备份自己的原配置，再决定是否保留这些选项。
 - 窗口大小和字体使用了预设值，不适合当前屏幕时可在 `.vimrc` 中修改 `lines`、`columns` 和 `guifont`。
 - 本仓库已附带插件，不需要额外安装插件管理器。
@@ -73,13 +73,13 @@
 - `executable('xvlog')` 返回 `1`，表示 ALE 可以找到 Vivado 的 `xvlog`。
 - 执行 `:ALEInfo` 可以查看当前文件使用的 linter 和完整诊断信息。
 
-使用 Python 版实例化和 testbench 生成功能前，还可以执行：
+使用 Python 版 testbench 生成功能前，还可以执行：
 
 ```vim
 :echo has('python')
 ```
 
-返回 `1` 才表示当前 Vim 支持 `,in` 和 `,tb` 所需的接口。
+返回 `1` 才表示当前 Vim 支持 `,tb` 所需的接口；`,in` 不依赖 Python。
 
 ## 快捷键速查
 
@@ -95,7 +95,7 @@
 | `,sv` | 普通模式 | 重新加载当前 Vim 配置 |
 | `,ii` | 普通模式 | 根据“位宽 信号名”生成 `input wire` 声明 |
 | `,oo` | 普通模式 | 根据“位宽 信号名”生成 `output wire` 声明 |
-| `,in` | 普通模式 | 使用 Python 脚本生成模块实例化模板 |
+| `,in` | 普通模式 | 使用纯 Vimscript 解析器生成模块实例化模板 |
 | `,tb` | 普通模式 | 使用 Python 脚本生成 testbench 骨架 |
 | `,ig` | 普通模式 | 使用 `vlog_inst_gen` 插件生成实例化模板 |
 | `,im` | 普通模式 | 切换 `vlog_inst_gen` 的输出模式 |
@@ -142,7 +142,7 @@ Vim 配置文件使用 marker 折叠。在带有 `{{{` 标记的配置段上按 
 
 项目提供两套实例化方式：
 
-- `,in`：自定义 Python 实现，在新标签页中生成实例化内容。
+- `,in`：自定义纯 Vimscript 实现，在新标签页中生成实例化内容；默认保留端口的 packed 位宽。
 - `,ig`：`vlog_inst_gen` 的 Vimscript 实现，不依赖 Vim 的 Python 接口；使用 `,im` 可以切换复制、分屏显示或更新文件等输出模式。
 
 脚本主要面向 Verilog-2001 风格的模块端口。复杂宏、特殊参数表达式或一个文件内存在多个模块时，请生成后检查结果。
@@ -185,9 +185,9 @@ Vim 配置文件使用 marker 折叠。在带有 `{{{` 标记的配置段上按 
 
 先执行 `:echo exists(':ALEInfo')`。如果返回 `0`，请检查 `pack/ale/start/ale` 的目录层级；如果 ALE 已加载，再执行 `:ALEInfo` 和 `:echo executable('xvlog')` 检查 Vivado 环境。完整步骤见 [ALE 使用指南](docs/ale.md)。
 
-### 执行 `,in` 或 `,tb` 提示 Python 错误
+### 执行 `,tb` 提示 Python 错误
 
-执行 `:echo has('python')`。返回 `0` 表示当前 Vim 没有旧式 Python 接口，可以改用 `,ig`。脚本现状和迁移计划见 [自定义生成脚本说明](docs/custom-generators.md)。
+执行 `:echo has('python')`。返回 `0` 表示当前 Vim 没有旧式 Python 接口；`,in` 和 `,ig` 不受影响。脚本现状和迁移计划见 [自定义生成脚本说明](docs/custom-generators.md)。
 
 ### 出现 `^M` 或换行符错误
 

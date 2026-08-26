@@ -16,16 +16,16 @@ pack/user_define/start/user_define/plugin/vlog_tb_gen.vim
 
 ## 当前运行环境
 
-脚本嵌入在 Vim function 中，通过旧式 `:python` 接口读取和写入 Vim Buffer。使用前在 Vim/GVim 中执行：
+`,in` 已改为纯 Vimscript 实现，不依赖 Python，并保持对 Vim 7.4 可用语法的兼容。`,tb` 仍通过旧式 `:python` 接口读取和写入 Vim Buffer；使用 `,tb` 前在 Vim/GVim 中执行：
 
 ```vim
 :echo has('python')
 ```
 
-- 返回 `1`：当前 Vim 可以执行这两个脚本。
-- 返回 `0`：当前 Vim 没有脚本所需的 Python 接口，按 `,in` 或 `,tb` 会报错。
+- 返回 `1`：当前 Vim 可以执行旧版 `,tb` 脚本。
+- 返回 `0`：按 `,tb` 会报错，但不影响纯 Vimscript 的 `,in`。
 
-这里检查的是 `python`，不是 `python3`。脚本后续计划迁移到 Python 3；迁移完成前，可以使用纯 Vimscript 的 `,ig` 生成实例化模板。
+这里检查的是 `python`，不是 `python3`。`,tb` 后续会迁移到共享的纯 Vimscript 解析器；迁移完成前，可以使用 `,in` 或 `,ig` 生成实例化模板。
 
 ## 建议的模块格式
 
@@ -44,30 +44,39 @@ module data_pipe #(
 endmodule
 ```
 
-为了让当前正则解析器稳定识别，建议满足以下条件：
+为了让当前轻量解析器稳定识别，建议满足以下条件：
 
 - 一个文件只放一个需要生成的模块。
-- `module` 从行首开始书写。
-- 模块头使用 Verilog-2001 端口声明，并以单独的 `);` 结束。
+- 模块头使用 Verilog-2001 ANSI 端口声明，并以 `);` 结束。
 - 端口方向使用 `input`、`output` 或 `inout`。
-- 参数名使用大写字母，参数默认值优先使用简单数字。
-- 生成后人工检查复杂位宽、宏、条件编译和特殊参数表达式。
+- 参数可以带类型、packed 位宽、下划线和表达式默认值。
+- 同一声明中的多个端口会继承方向、类型和 packed 位宽。
+- 生成后仍需人工检查宏、条件编译、interface 和其他复杂 SystemVerilog 结构。
 
 ## 使用 `,in` 生成实例化模板
 
 1. 打开包含目标模块的 Verilog 文件。
 2. 确认光标所在 Buffer 是需要解析的模块。
 3. 在普通模式下按 `,in`。
-4. 脚本创建一个名为 `inst` 的 Buffer，并在新标签页中显示生成内容。
+4. 脚本创建一个名为 `inst_<module>.v` 的 Buffer，并在新标签页中显示生成内容；同名 Buffer 或文件存在时会自动添加数字后缀。
 
 生成结果包含：
 
 - 模块名和默认实例名 `U_<MODULE>_0`。
 - 参数传递模板。
 - `input`、`output`、`inout` 端口连接。
+- 向量连接默认保留原始 packed 位宽，例如 `.data(data[WIDTH-1:0])`。
 - 按最长端口名计算的基础对齐。
 
-`inst` 是未保存的辅助 Buffer。确认结果后，请复制到目标文件或使用 `:write` 保存到明确路径。
+生成结果是未保存的普通 Buffer。确认结果后，请复制到目标文件或使用 `:write` 保存。
+
+如果临时不希望连接信号携带 packed 位宽，可以在 `.vimrc` 中设置：
+
+```vim
+let g:verilog_gen_connect_width = 0
+```
+
+默认值为 `1`，符合本项目显式显示端口位宽的习惯。
 
 ## 使用 `,tb` 生成 testbench
 
@@ -90,20 +99,19 @@ endmodule
 
 ## 当前限制
 
-### Python 接口较旧
+### Testbench 生成器的 Python 接口较旧
 
-脚本使用 `:python`，很多现代 Vim 构建只支持 Python 3，或者完全不带 Python。迁移时需要把 Vim 接口切换到 `:python3`，并同步检查 Python 3 的字符串与 Buffer 行为。
+`,tb` 使用 `:python`，很多现代 Vim 构建只支持 Python 3，或者完全不带 Python。`,in` 已经移除这项依赖；`,tb` 后续也会复用同一个纯 Vimscript 解析器。
 
-### 解析器基于正则表达式
+### 解析器不是完整语法分析器
 
 当前实现适合结构规则的模块头，但不是完整的 Verilog/SystemVerilog 语法解析器。以下情况需要特别检查：
 
 - Verilog-95 非 ANSI 端口声明。
 - 一个文件中存在多个模块。
 - `ifdef`、宏展开或复杂预处理结构。
-- interface、modport、结构体或其他 SystemVerilog 特性。
-- 多端口合并声明、复杂参数类型和多行表达式。
-- 模块头结束行带有额外字符或行尾注释。
+- escaped identifier、interface、modport、结构体和部分复杂数组声明。
+- 依赖预处理宏才能形成完整模块头的代码。
 
 ### Testbench 模板带有项目假设
 
@@ -122,30 +130,28 @@ endmodule
 :echo has('python')
 ```
 
-返回 `0` 时，当前只能更换带 Python 接口的 Vim，或暂时使用 `,ig`。后续迁移到 Python 3 后可解除这一限制。
+返回 `0` 时，`,tb` 暂时无法使用；`,in` 和 `,ig` 仍可正常生成实例化模板。
 
-### 提示找不到 module block
+### 提示找不到 ANSI module 或端口列表
 
 检查：
 
-- `module` 前是否存在缩进。
 - 模块头是否以 `);` 结束。
-- 文件中是否包含多个模块或特殊宏结构。
+- 模块是否采用 ANSI 风格端口声明。
+- 文件中是否包含多个模块、特殊宏或预处理结构。
 - 是否在正确的 Verilog Buffer 中执行快捷键。
 
 ### 端口或参数缺失
 
-先把复杂声明改写为更标准的 Verilog-2001 ANSI 形式，再尝试生成。也可以先使用 `,ig` 对比结果，帮助定位当前正则没有覆盖的语法。
+先确认模块使用 Verilog-2001 ANSI 端口列表。`,in` 会识别参数类型、表达式、共享端口声明和 packed 位宽；遇到 interface、宏生成的模块头或其他复杂 SystemVerilog 结构时，可以使用 `,ig` 对比并人工检查。
 
 ## 后续优化方向
 
 建议按以下顺序演进：
 
-1. 将 `:python` 迁移为 Python 3，并在缺少接口时给出友好提示。
-2. 抽出共享的模块、参数和端口解析逻辑，避免实例化与 testbench 脚本重复实现。
-3. 增加 Verilog-2001、SystemVerilog、宏和多模块测试样例。
-4. 让时钟周期、复位极性、仿真结束时间和 FSDB/VCD 波形格式可配置。
-5. 改善错误信息，在具体行号提示无法识别的声明。
-6. 将生成结果改成可命名、可预览并明确保存状态的临时 Buffer。
+1. 让 `,tb` 复用 `,in` 已采用的共享模块、参数和端口解析器，移除旧式 Python 依赖。
+2. 增加更多 SystemVerilog、宏、多模块和数组端口测试样例。
+3. 让时钟周期、复位极性、仿真结束时间和 FSDB/VCD 波形格式可配置。
+4. 改善错误信息，在具体行号提示无法识别的声明。
 
 后续优化时，建议先保留一组真实模块作为回归样例，再逐步替换解析器，避免功能迁移过程中改变已有输出格式。
