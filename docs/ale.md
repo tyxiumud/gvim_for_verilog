@@ -16,6 +16,29 @@ let b:ale_linters = ['xvlog']
 
 这种方式适合保留个人环境差异。如果新建或切换到另一个 Verilog Buffer，该 Buffer 没有 `b:ale_linters` 时，ALE 会按自己的默认规则选择已注册的检查器。
 
+## `.f` Verilog 文件列表
+
+Vim 默认把 `.f` 后缀识别为 Fortran 源文件，ALE 随后可能启动 Fortran 检查器。Verilog 工程通常又使用 `.f` 保存源文件列表，因此本仓库在 `.vimrc` 中将它定义为单独的 `verilog_filelist` 文件类型，并只对这种 Buffer 关闭 ALE：
+
+```vim
+augroup verilog_filelist
+    autocmd!
+    autocmd BufNewFile,BufRead *.f setlocal filetype=verilog_filelist
+    autocmd FileType verilog_filelist let b:ale_enabled = 0
+augroup END
+```
+
+这里使用独立的自动命令组，不会清理 Vim 内置 `filetypedetect` 组中的其他规则。`b:ale_enabled` 是 Buffer 局部变量，不影响 `.v`、`.sv` 或其他文件中的 ALE 检查。
+
+打开 `.f` 文件后，可以确认设置结果：
+
+```vim
+:set filetype?
+:echo get(b:, 'ale_enabled', 1)
+```
+
+预期分别显示 `filetype=verilog_filelist` 和 `0`。如果需要编辑真正的 Fortran `.f` 源文件，应删除这段配置、换用其他文件列表后缀，或者把匹配规则限制到特定工程目录。
+
 ## 选择适合自己的检查器
 
 常见选择如下：

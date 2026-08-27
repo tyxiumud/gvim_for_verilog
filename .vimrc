@@ -10,6 +10,12 @@ if !exists('g:syntax_on')
     syntax on  "语法高亮度显示
 endif
 filetype plugin indent on "启用文件类型插件与缩进规则
+"Verilog工程中的.f文件作为文件列表使用，不按Fortran解析，也不启动ALE
+augroup verilog_filelist
+    autocmd!
+    autocmd BufNewFile,BufRead *.f setlocal filetype=verilog_filelist
+    autocmd FileType verilog_filelist let b:ale_enabled = 0
+augroup END
 set t_Co=256  "开启256色支持
 set hlsearch  "搜索设置高亮
 if get(g:, 'colors_name', '') !=# 'desert'
