@@ -82,10 +82,22 @@ nnoremap <F6> 0i            <ESC>0dwi    <ESC>^f(i                              
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 "}}}
-"输入输出端口 形式必须为 位宽 + 信号信号名称 使用,ii ,oo 来声明{{{
-"功能描述 输入<leader>ii <leader>oo 自动生成输入输入模板，需要输入端口信号位宽，信号名称
-nnoremap <leader>ii <ESC>0i        <ESC>0dwi    input   wire                                                                            <ESC>020li[<ESC>ldwwi                        <ESC>028li-1: 0]<ESC>wi                                                            <ESC>044ldwea                                                                                                                <ESC>089li,<ESC>0f,a                                <ESC>bldwj
-nnoremap <leader>oo <ESC>0i        <ESC>0dwi    output  wire                                            <ESC>020li[<ESC>ldwwi                        <ESC>028li-1: 0]<ESC>wi                                                            <ESC>044ldwea                                                                                                                <ESC>089li,<ESC>0f,a                                <ESC>bldwj
+"输入输出端口：将“位宽 信号名”转换为对齐的Verilog声明，使用,ii和,oo{{{
+"以下数值是从1开始的屏幕目标列，不是直接插入的空格数量。
+"相邻目标列之差就是前一字段预留的宽度；字段过长时后续内容自动右移。
+"direction：input/output起始列；type：wire起始列。
+"width：左方括号和位宽起始列；width_suffix：-1: 0]起始列。
+"name：信号名起始列；comma：行尾逗号所在列。
+let g:verilog_port_columns = {
+\   'direction': 5,
+\   'type': 13,
+\   'width': 21,
+\   'width_suffix': 29,
+\   'name': 45,
+\   'comma': 90,
+\}
+nnoremap <leader>ii :call verilog_port#Expand('input')<CR>
+nnoremap <leader>oo :call verilog_port#Expand('output')<CR>
 "}}}
 "设置bffer的切换 使用 Ctrl J、K、H切换或者删除{{{ 
 "切换buffer以及删除buffer

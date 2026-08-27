@@ -2,16 +2,23 @@
 
 [返回 README](../README.md)
 
-本项目包含两项自行编写的 Verilog 辅助功能：
+本项目包含三项自行编写的 Verilog 辅助功能：
 
 - `,in`：从当前模块生成实例化模板。
 - `,tb`：从当前模块生成 testbench 骨架。
+- `,ii` / `,oo`：把一行“位宽 信号名”展开为对齐的端口声明（`input` / `output`）。
 
-这两个功能与 `vlog_inst_gen` 插件相互独立，源代码分别位于：
+`,in`、`,tb` 与 `vlog_inst_gen` 插件相互独立，源代码位于：
 
 ```text
 pack/user_define/start/user_define/plugin/vlog_inst_gen.vim
 pack/user_define/start/user_define/plugin/vlog_tb_gen.vim
+```
+
+`,ii` / `,oo` 的实现位于：
+
+```text
+pack/user_define/start/user_define/autoload/verilog_port.vim
 ```
 
 ## 当前运行环境
@@ -96,6 +103,76 @@ let g:verilog_gen_connect_width = 0
 - FSDB 波形文件、`$fsdbDumpvars` 和仿真结束模板。
 
 生成的 Buffer 默认未保存，需要检查后手动写入文件。
+
+## 使用 `,ii` / `,oo` 展开端口声明
+
+`,ii` 和 `,oo` 把光标所在行的一对“位宽 信号名”展开成对齐的 Verilog 端口声明，分别生成 `input` 和 `output`。它不依赖 Python，兼容 Vim 7.4。
+
+### 用法
+
+1. 在普通模式下，把光标放在一行 `位宽 信号名` 上，例如 `8 data_i`。
+2. 按 `,ii` 生成输入端口，或按 `,oo` 生成输出端口。
+3. 当前行被替换为对齐后的声明，光标自动移到下一行；逐行重复即可快速列出一组端口。
+
+输入行只接受恰好两个字段，格式为 `位宽 信号名`（位宽可以是数字或表达式）。字段数不对或位宽/信号名为空时会报错，不会破坏原内容。
+
+### 输出示例
+
+输入：
+
+```text
+8  data_i
+1  clk
+32 data_bus
+```
+
+对每一行依次按 `,ii` 后：
+
+```verilog
+input  wire [8-1: 0]  data_i,
+input  wire           clk,
+input  wire [32-1: 0] data_bus,
+```
+
+位宽为 `1` 时按标量端口处理，不写 `[1-1: 0]` 区间，直接生成 `input wire clk,`；信号名列仍与其他多比特端口对齐。位宽大于 `1` 时按 `W-1: 0` 形式保留原始表达式，不预先求值；字段间按目标列对齐，某个信号名过长时后续字段会自动右移，不会像旧式宏那样因超长而错位。
+
+### 调整对齐列
+
+各字段的目标列由 `.vimrc` 中的 `g:verilog_port_columns` 控制：
+
+```vim
+let g:verilog_port_columns = {
+\   'direction': 5,
+\   'type': 13,
+\   'width': 21,
+\   'width_suffix': 29,
+\   'name': 45,
+\   'comma': 90,
+\}
+```
+
+含义（均为从 1 开始的显示列，不是插入的空格数）：
+
+- `direction`：`input` / `output` 起始列。
+- `type`：`wire` 起始列。
+- `width`：`[` 与位宽起始列。
+- `width_suffix`：`-1: 0]` 起始列。
+- `name`：信号名起始列。
+- `comma`：行尾逗号起始列。
+
+相邻目标列之差就是前一字段预留的宽度。只需修改对应的数字即可整体改变对齐风格，无需改动 `autoload/verilog_port.vim` 本身。
+
+### 与 F6 宏的关系
+
+`,ii` / `,oo` 是较新的实现，已取代旧的 `<F6>` 端口对齐宏。`<F6>` 仍保留在 `.vimrc` 中，但它使用写死的列位置和按键序列，信号名过长时会错位；建议新工作流统一使用 `,ii` / `,oo`，后续可从 `.vimrc` 移除 `<F6>` 映射。
+
+### 扩展：支持 inout
+
+`verilog_port#Format` 已支持 `inout` 方向，但默认只映射了 `,ii`（input）和 `,oo`（output）。如果需要，可在 `.vimrc` 中自行添加：
+
+```vim
+nnoremap <leader>io :call verilog_port#Expand('inout')<CR>
+```
 
 ## 当前限制
 
