@@ -17,7 +17,10 @@ augroup verilog_filelist
     autocmd FileType verilog_filelist let b:ale_enabled = 0
 augroup END
 set t_Co=256  "开启256色支持
-set hlsearch  "搜索设置高亮
+set hlsearch  "高亮显示所有搜索匹配项
+set incsearch "输入搜索内容时实时定位匹配项
+set ignorecase "搜索时默认忽略大小写
+set smartcase "搜索词包含大写字母时恢复大小写敏感
 if get(g:, 'colors_name', '') !=# 'desert'
     colorscheme desert "配色方案
 endif
@@ -54,7 +57,9 @@ set autoindent "设置自动缩进  自动缩进，当你第一行敲 tab + 文�
 set backspace=2 "使用 backspace
 set laststatus=2 "启动显示状态行
 set encoding=utf-8 "文件编码
-set completeopt=menu,preview,longest "自动补全相关的设置
+set completeopt=menu,preview,longest "控制插入模式的自动补全菜单
+set wildmenu "显示命令行补全菜单
+set wildmode=longest:full,full "首次补全公共前缀并显示菜单，后续循环候选项
 "}}}
 "GVim窗口与字体设置{{{
 if has('gui_running')
