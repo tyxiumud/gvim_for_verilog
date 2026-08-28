@@ -88,6 +88,7 @@ nnoremap <leader>sv :source $MYVIMRC<cr>
 "direction：input/output起始列；type：wire起始列。
 "width：左方括号和位宽起始列；width_suffix：-1: 0]起始列。
 "name：信号名起始列；comma：行尾逗号所在列。
+"输入位宽为1时按标量处理，不生成位宽范围，但信号名和逗号仍保持对齐。
 let g:verilog_port_columns = {
 \   'direction': 5,
 \   'type': 13,
