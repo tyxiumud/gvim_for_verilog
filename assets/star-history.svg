@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" role="img" aria-label="Star History chart awaiting first update">
+<title>Star History: tyxiumud/gvim_for_verilog</title>
+<rect width="960" height="500" rx="16" fill="white"/>
+<text x="90" y="52" font-family="Arial,sans-serif" font-size="28" font-weight="bold" fill="#1f2937">Star History</text>
+<text x="90" y="85" font-family="Arial,sans-serif" font-size="16" fill="#64748b">tyxiumud/gvim_for_verilog</text>
+<path d="M90 100V414H920" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="505" y="257" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#64748b">Run the Star History workflow to load the chart</text>
+<text x="90" y="470" font-family="Arial,sans-serif" font-size="12" fill="#94a3b8">Powered by GitHub Actions + GitHub API</text>
+</svg>
