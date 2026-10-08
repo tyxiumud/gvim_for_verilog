@@ -250,8 +250,6 @@ let g:verilog_port_columns = {
 
 ![Star History](assets/star-history.svg)
 
-图表由 [GitHub Actions](.github/workflows/star-history.yml) 每天自动更新，也可以在 Actions 页面手动运行。曲线根据 GitHub API 返回的**当前仍保留 Star 的账号**及其收藏时间重建；如果有人取消收藏，历史曲线可能随之调整，并非完整的历史总量快照。
-
 ## 交流与贡献
 
 欢迎提交 Issue 或 Pull Request。也可以通过邮箱 `823300630@qq.com` 联系作者。
