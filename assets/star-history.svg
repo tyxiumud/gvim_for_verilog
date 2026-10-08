@@ -1,9 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" role="img" aria-label="Star History chart awaiting first update">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" role="img" aria-label="GitHub Star History for tyxiumud/gvim_for_verilog">
 <title>Star History: tyxiumud/gvim_for_verilog</title>
-<rect width="960" height="500" rx="16" fill="white"/>
-<text x="90" y="52" font-family="Arial,sans-serif" font-size="28" font-weight="bold" fill="#1f2937">Star History</text>
-<text x="90" y="85" font-family="Arial,sans-serif" font-size="16" fill="#64748b">tyxiumud/gvim_for_verilog</text>
-<path d="M90 100V414H920" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
-<text x="505" y="257" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#64748b">Run the Star History workflow to load the chart</text>
-<text x="90" y="470" font-family="Arial,sans-serif" font-size="12" fill="#94a3b8">Powered by GitHub Actions + GitHub API</text>
+<defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#f97316" stop-opacity="0.22"/>
+<stop offset="100%" stop-color="#f97316" stop-opacity="0.01"/>
+</linearGradient></defs>
+<rect width="960" height="500" fill="#ffffff" rx="16"/>
+<text x="90" y="48" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#1f2937">Star History</text>
+<text x="90" y="75" font-family="Arial,sans-serif" font-size="15" fill="#64748b">tyxiumud/gvim_for_verilog</text>
+<text x="920" y="52" text-anchor="end" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="#ea580c">55 ★</text>
+<line x1="90" y1="417.0" x2="920" y2="417.0" stroke="#e5e7eb" stroke-width="1"/>
+<text x="76" y="422.0" text-anchor="end" font-family="Arial,sans-serif" font-size="13" fill="#64748b">0</text>
+<line x1="90" y1="311.3" x2="920" y2="311.3" stroke="#e5e7eb" stroke-width="1"/>
+<text x="76" y="316.3" text-anchor="end" font-family="Arial,sans-serif" font-size="13" fill="#64748b">20</text>
+<line x1="90" y1="205.7" x2="920" y2="205.7" stroke="#e5e7eb" stroke-width="1"/>
+<text x="76" y="210.7" text-anchor="end" font-family="Arial,sans-serif" font-size="13" fill="#64748b">40</text>
+<line x1="90" y1="100.0" x2="920" y2="100.0" stroke="#e5e7eb" stroke-width="1"/>
+<text x="76" y="105.0" text-anchor="end" font-family="Arial,sans-serif" font-size="13" fill="#64748b">60</text>
+<text x="90.0" y="443" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#64748b">2022-11</text>
+<text x="256.0" y="443" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#64748b">2023-08</text>
+<text x="422.0" y="443" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#64748b">2024-05</text>
+<text x="588.0" y="443" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#64748b">2025-02</text>
+<text x="754.0" y="443" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#64748b">2025-11</text>
+<text x="920.0" y="443" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#64748b">2026-09</text>
+<line x1="90" y1="417" x2="920" y2="417" stroke="#94a3b8"/>
+<line x1="90" y1="100" x2="90" y2="417" stroke="#94a3b8"/>
+<path d="M90.0,417.0 L98.3,417.0 L98.3,411.7 L111.9,411.7 L111.9,406.4 L117.3,406.4 L117.3,401.1 L144.5,401.1 L144.5,395.9 L150.5,395.9 L150.5,390.6 L155.8,390.6 L155.8,385.3 L161.1,385.3 L161.1,380.0 L174.8,380.0 L174.8,374.7 L208.6,374.7 L208.6,369.4 L210.3,369.4 L210.3,364.2 L222.2,364.2 L222.2,353.6 L227.5,353.6 L227.5,348.3 L251.8,348.3 L251.8,343.0 L263.7,343.0 L263.7,337.8 L275.6,337.8 L275.6,332.5 L299.3,332.5 L299.3,327.2 L308.2,327.2 L308.2,321.9 L324.8,321.9 L324.8,316.6 L337.2,316.6 L337.2,311.3 L352.6,311.3 L352.6,306.1 L358.6,306.1 L358.6,300.8 L378.7,300.8 L378.7,295.5 L389.4,295.5 L389.4,290.2 L392.4,290.2 L392.4,284.9 L413.7,284.9 L413.7,279.6 L433.3,279.6 L433.3,274.4 L435.0,274.4 L435.0,269.1 L441.0,269.1 L441.0,263.8 L449.3,263.8 L449.3,258.5 L451.6,258.5 L451.6,253.2 L458.2,253.2 L458.2,247.9 L470.0,247.9 L470.0,242.6 L483.1,242.6 L483.1,237.4 L509.1,237.4 L509.1,232.1 L516.3,232.1 L516.3,226.8 L519.2,226.8 L519.2,221.5 L522.2,221.5 L522.2,216.2 L525.8,216.2 L525.8,210.9 L544.1,210.9 L544.1,205.7 L556.6,205.7 L556.6,200.4 L590.4,200.4 L590.4,195.1 L592.7,195.1 L592.7,189.8 L621.8,189.8 L621.8,184.5 L634.8,184.5 L634.8,179.2 L642.0,179.2 L642.0,174.0 L672.2,174.0 L672.2,168.7 L731.5,168.7 L731.5,163.4 L743.9,163.4 L743.9,158.1 L755.8,158.1 L755.8,152.8 L760.5,152.8 L760.5,147.6 L814.5,147.6 L814.5,142.3 L860.1,142.3 L860.1,137.0 L897.5,137.0 L897.5,131.7 L911.7,131.7 L911.7,126.4 L920.0,126.4 L920.0,417 Z" fill="url(#area)"/>
+<path d="M90.0,417.0 L98.3,417.0 L98.3,411.7 L111.9,411.7 L111.9,406.4 L117.3,406.4 L117.3,401.1 L144.5,401.1 L144.5,395.9 L150.5,395.9 L150.5,390.6 L155.8,390.6 L155.8,385.3 L161.1,385.3 L161.1,380.0 L174.8,380.0 L174.8,374.7 L208.6,374.7 L208.6,369.4 L210.3,369.4 L210.3,364.2 L222.2,364.2 L222.2,353.6 L227.5,353.6 L227.5,348.3 L251.8,348.3 L251.8,343.0 L263.7,343.0 L263.7,337.8 L275.6,337.8 L275.6,332.5 L299.3,332.5 L299.3,327.2 L308.2,327.2 L308.2,321.9 L324.8,321.9 L324.8,316.6 L337.2,316.6 L337.2,311.3 L352.6,311.3 L352.6,306.1 L358.6,306.1 L358.6,300.8 L378.7,300.8 L378.7,295.5 L389.4,295.5 L389.4,290.2 L392.4,290.2 L392.4,284.9 L413.7,284.9 L413.7,279.6 L433.3,279.6 L433.3,274.4 L435.0,274.4 L435.0,269.1 L441.0,269.1 L441.0,263.8 L449.3,263.8 L449.3,258.5 L451.6,258.5 L451.6,253.2 L458.2,253.2 L458.2,247.9 L470.0,247.9 L470.0,242.6 L483.1,242.6 L483.1,237.4 L509.1,237.4 L509.1,232.1 L516.3,232.1 L516.3,226.8 L519.2,226.8 L519.2,221.5 L522.2,221.5 L522.2,216.2 L525.8,216.2 L525.8,210.9 L544.1,210.9 L544.1,205.7 L556.6,205.7 L556.6,200.4 L590.4,200.4 L590.4,195.1 L592.7,195.1 L592.7,189.8 L621.8,189.8 L621.8,184.5 L634.8,184.5 L634.8,179.2 L642.0,179.2 L642.0,174.0 L672.2,174.0 L672.2,168.7 L731.5,168.7 L731.5,163.4 L743.9,163.4 L743.9,158.1 L755.8,158.1 L755.8,152.8 L760.5,152.8 L760.5,147.6 L814.5,147.6 L814.5,142.3 L860.1,142.3 L860.1,137.0 L897.5,137.0 L897.5,131.7 L911.7,131.7 L911.7,126.4 L920.0,126.4" stroke="#f15b32" stroke-width="3.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="920.0" cy="126.4" r="5" fill="#f15b32"/>
+<text x="90" y="480" font-family="Arial,sans-serif" font-size="12" fill="#94a3b8">Source: GitHub API · Based on currently starred accounts</text>
 </svg>
