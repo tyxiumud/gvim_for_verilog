@@ -155,9 +155,9 @@ augroup END
 "进行版权声明的设置,添加或更新头 F3 {{{
 nnoremap <F3> :call TitleDet()<cr>
 "}}}
-"use ,in to generate instance{{{
-nnoremap <leader>in :call Autoinstance()<cr>
-"}}}
+"vlog_inst_gen (,ig): show packed widths and port directions in the instance
+let g:vlog_inst_gen_connect_width = 1
+let g:vlog_inst_gen_direction_comment = 1
 "use ,tb to generate testbench_file{{{
 nnoremap <leader>tb :call Autotb()<cr>
 "}}}

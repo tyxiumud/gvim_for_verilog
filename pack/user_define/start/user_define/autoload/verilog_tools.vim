@@ -1,14 +1,10 @@
-" Shared Verilog module-header parser and generators.
+" Verilog module-header parser used by vlog_inst_gen's optional width output.
 " Keep this file compatible with Vim 7.4: do not use Vim 8-only functions.
 
 if exists('g:autoloaded_verilog_tools')
     finish
 endif
 let g:autoloaded_verilog_tools = 1
-
-if !exists('g:verilog_gen_connect_width')
-    let g:verilog_gen_connect_width = 1
-endif
 
 function! s:Throw(message) abort
     throw 'verilog-tools: ' . a:message
@@ -438,89 +434,4 @@ function! verilog_tools#ParseLines(lines) abort
     \       ? []
     \       : s:ParsePorts(l:port_text),
     \}
-endfunction
-
-function! verilog_tools#ParseCurrentBuffer() abort
-    return verilog_tools#ParseLines(getline(1, '$'))
-endfunction
-
-function! s:MaxNameLength(items) abort
-    let l:max_length = 0
-    for l:item in a:items
-        let l:max_length = max([l:max_length, strlen(l:item.name)])
-    endfor
-    return l:max_length
-endfunction
-
-function! verilog_tools#BuildInstance(module) abort
-    let l:lines = []
-    let l:name = a:module.name
-    let l:instance_name = 'U_' . toupper(l:name) . '_0'
-    let l:parameters = a:module.parameters
-    let l:ports = a:module.ports
-
-    if !empty(l:parameters)
-        call add(l:lines, l:name . ' #(')
-        let l:max_parameter = s:MaxNameLength(l:parameters)
-        let l:index = 0
-        for l:parameter in l:parameters
-            let l:comma = l:index == len(l:parameters) - 1 ? '' : ','
-            call add(l:lines, '    .' . l:parameter.name
-            \   . repeat(' ', l:max_parameter - strlen(l:parameter.name) + 1)
-            \   . '(' . l:parameter.name . ')' . l:comma)
-            let l:index += 1
-        endfor
-        call add(l:lines, ') ' . l:instance_name . (empty(l:ports) ? ' ();' : ' ('))
-    else
-        call add(l:lines, l:name . ' ' . l:instance_name
-        \   . (empty(l:ports) ? ' ();' : ' ('))
-    endif
-
-    if empty(l:ports)
-        return l:lines
-    endif
-
-    let l:max_port = s:MaxNameLength(l:ports)
-    let l:index = 0
-    for l:port in l:ports
-        let l:connection = l:port.name
-        if get(g:, 'verilog_gen_connect_width', 1)
-            let l:connection .= join(l:port.packed_dimensions, '')
-        endif
-        let l:comma = l:index == len(l:ports) - 1 ? '' : ','
-        call add(l:lines, '    .' . l:port.name
-        \   . repeat(' ', l:max_port - strlen(l:port.name) + 1)
-        \   . '(' . l:connection . ')' . l:comma)
-        let l:index += 1
-    endfor
-    call add(l:lines, ');')
-
-    return l:lines
-endfunction
-
-function! s:GeneratedBufferName(module_name) abort
-    let l:base = 'inst_' . tolower(a:module_name)
-    let l:candidate = l:base . '.v'
-    let l:index = 1
-
-    while bufexists(l:candidate) || filereadable(l:candidate) || isdirectory(l:candidate)
-        let l:candidate = l:base . '_' . l:index . '.v'
-        let l:index += 1
-    endwhile
-
-    return l:candidate
-endfunction
-
-function! verilog_tools#OpenInstanceBuffer(lines, module_name) abort
-    tabnew
-    let l:buffer_name = s:GeneratedBufferName(a:module_name)
-    execute 'file ' . fnameescape(l:buffer_name)
-    setlocal bufhidden=hide
-    setlocal noswapfile
-    setlocal filetype=verilog
-    call setline(1, a:lines)
-    normal! gg
-    let b:verilog_generated_kind = 'instance'
-    let b:verilog_source_module = a:module_name
-    return bufnr('%')
 endfunction

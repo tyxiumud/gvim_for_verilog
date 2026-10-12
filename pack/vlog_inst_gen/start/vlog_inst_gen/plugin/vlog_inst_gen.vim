@@ -98,6 +98,13 @@ let g:check_port_declaration = 0        " never set to '1', disabled by v1.5
 let g:is_copy_inst_to_doublequotation = 1 "copy instance to clickboard,
                                         "so that you can use 'p' to 
                                         "paste..
+" Keep the plugin's original output unless these optional annotations are enabled.
+if !exists('g:vlog_inst_gen_connect_width')
+    let g:vlog_inst_gen_connect_width = 0
+endif
+if !exists('g:vlog_inst_gen_direction_comment')
+    let g:vlog_inst_gen_direction_comment = 0
+endif
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "   Subfunction     : Clear_Parameter_List
@@ -642,7 +649,62 @@ endfun
 "   Description     : generate and return instance from given 
 "       information.
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list)
+" Keep metadata keyed by port name so the original port_list remains in order.
+" Packed widths come from the bundled Vimscript header parser. The plugin's
+" own direction lists still work when a header contains unsupported macros.
+fun! <SID>Port_Metadata(module_info, port_list, port_i_list, port_o_list, port_io_list)
+    let metadata_list = []
+    let module_index = 0
+    while module_index < len(a:module_info)
+        let metadata = {}
+        for port in a:port_list[module_index]
+            let name = substitute(port, '@$', '', '')
+            if name =~ '^`'
+                continue
+            endif
+            let direction = ''
+            if index(a:port_i_list[module_index], name) >= 0
+                let direction = 'input'
+            elseif index(a:port_o_list[module_index], name) >= 0
+                let direction = 'output'
+            elseif index(a:port_io_list[module_index], name) >= 0
+                let direction = 'inout'
+            endif
+            let metadata[name] = {'direction': direction, 'width': ''}
+        endfor
+
+        if g:vlog_inst_gen_connect_width
+            try
+                let header = getline(a:module_info[module_index][0], a:module_info[module_index][1])
+                let parsed = verilog_tools#ParseLines(header)
+                for port in parsed.ports
+                    if has_key(metadata, port.name)
+                        let metadata[port.name].width = join(port.packed_dimensions, '')
+                    endif
+                endfor
+            catch /^verilog-tools:/
+                " Unsupported headers keep the plugin's original connections.
+            catch /E117:/
+                " Unsupported headers keep the plugin's original connections.
+            endtry
+        endif
+        call add(metadata_list, metadata)
+        let module_index = module_index + 1
+    endwhile
+    return metadata_list
+endfun
+
+fun! <SID>Port_Connection(name, metadata)
+    let width = g:vlog_inst_gen_connect_width ? get(a:metadata, 'width', '') : ''
+    return a:name.width
+endfun
+
+fun! <SID>Port_Comment(metadata)
+    let direction = g:vlog_inst_gen_direction_comment ? get(a:metadata, 'direction', '') : ''
+    return empty(direction) ? '' : ' // '.direction
+endfun
+
+fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list, metadata_list)
     let inst = ""
     let has_para_flag = 0
     let i = 0
@@ -697,37 +759,40 @@ fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list)
                         continue
                     endif
                 elseif port[len(port)-1] == "@"
-                    let line_content = "    .".port[0:(len(port)-2)]
+                    let port_name = port[0:(len(port)-2)]
+                    let metadata = get(a:metadata_list[i], port_name, {})
+                    let line_content = "    .".port_name
                     "insert spaces the first time
                     while strwidth(line_content) < 36
                         let line_content = line_content." "
                     endw
                     "insert spaces the second time
-                    let line_content = line_content."( ".port[0:(len(port)-2)]
+                    let line_content = line_content."( ".<SID>Port_Connection(port_name, metadata)
                     while strwidth(line_content) < 68
                         let line_content = line_content." "
                     endw
-                    let line_content = line_content.")\n"
+                    let line_content = line_content.")".<SID>Port_Comment(metadata)."\n"
                     let inst = inst.line_content
                     let list_index = list_index+1
                     continue
                 else
+                    let metadata = get(a:metadata_list[i], port, {})
                     let line_content = "    .".port
                     "insert spaces the first time
                     while strwidth(line_content) < 36
                         let line_content = line_content." "
                     endw
                     "insert spaces the second time
-                    let line_content = line_content."( ".port
+                    let line_content = line_content."( ".<SID>Port_Connection(port, metadata)
                     while strwidth(line_content) < 68
                         let line_content = line_content." "
                     endw
                     if list_index == list_len-1     "the last item
-                        let line_content = line_content.")\n"
+                        let line_content = line_content.")".<SID>Port_Comment(metadata)."\n"
                         let inst = inst.line_content
                         break
                     else
-                        let line_content = line_content."),\n"
+                        let line_content = line_content."),".<SID>Port_Comment(metadata)."\n"
                         let inst = inst.line_content
                         let list_index = list_index+1
                         continue
@@ -835,7 +900,8 @@ fun! Vlog_Inst_Gen()
         endw
     endif
     "step 6: get inst part and copy to clipboard
-    let inst_part = <SID>Inst_Part_Format(module_num, module_name_list, para_list, port_list)
+    let metadata_list = <SID>Port_Metadata(module_info, port_list, port_i_list, port_o_list, port_io_list)
+    let inst_part = <SID>Inst_Part_Format(module_num, module_name_list, para_list, port_list, metadata_list)
     let @+ = inst_part
     if g:is_copy_inst_to_doublequotation
         let @" = inst_part

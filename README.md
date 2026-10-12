@@ -23,7 +23,7 @@
 建议使用 Vim/GVim 8.2 或更高版本。开始安装前，请注意以下依赖和配置行为：
 
 - 语法检查依赖外部 Verilog 工具；仓库示例使用 Vivado `xvlog`，不同电脑可以自行选择。详见 [ALE 使用指南](docs/ale.md)。
-- `,in` 是纯 Vimscript 实例化生成器；`,tb` 仍使用 Vim 的旧式 `:python` 接口。环境要求、用法和限制详见 [自定义生成脚本说明](docs/custom-generators.md)。
+- `,ig` 使用仓库自带的 Vimscript 实例化插件；`,tb` 仍使用 Vim 的旧式 `:python` 接口。环境要求、用法和限制详见 [生成脚本说明](docs/custom-generators.md)。
 - 当前 `.vimrc` 禁用了 swap、backup 和持久化 undo 文件。请先保存或备份自己的原配置，再决定是否保留这些选项。
 - 窗口大小和字体使用了预设值，不适合当前屏幕时可在 `.vimrc` 中修改 `lines`、`columns` 和 `guifont`。
 - 本仓库已附带插件，不需要额外安装插件管理器。
@@ -79,7 +79,7 @@
 :echo has('python')
 ```
 
-返回 `1` 才表示当前 Vim 支持 `,tb` 所需的接口；`,in` 不依赖 Python。
+返回 `1` 才表示当前 Vim 支持 `,tb` 所需的接口；`,ig` 不依赖 Python。
 
 ## 快捷键速查
 
@@ -95,10 +95,9 @@
 | `,sv` | 普通模式 | 重新加载当前 Vim 配置 |
 | `,ii` | 普通模式 | 根据“位宽 信号名”生成 `input wire` 声明 |
 | `,oo` | 普通模式 | 根据“位宽 信号名”生成 `output wire` 声明 |
-| `,in` | 普通模式 | 使用纯 Vimscript 解析器生成模块实例化模板 |
 | `,tb` | 普通模式 | 使用 Python 脚本生成 testbench 骨架 |
-| `,ig` | 普通模式 | 使用 `vlog_inst_gen` 插件生成实例化模板 |
-| `,im` | 普通模式 | 切换 `vlog_inst_gen` 的输出模式 |
+| `,ig` | 普通模式 | 按当前模式生成实例化模板，并复制到剪贴板 |
+| `,im` | 普通模式 | 切换 `,ig` 的输出模式；本身不生成实例化内容 |
 | `Ctrl-j` | 普通模式 | 切换到下一个 Buffer |
 | `Ctrl-k` | 普通模式 | 切换到上一个 Buffer |
 | `Ctrl-h` | 普通模式 | 关闭当前 Buffer |
@@ -166,14 +165,20 @@ let g:verilog_port_columns = {
 
 ### 模块实例化
 
-项目提供两套实例化方式：
+使用 `,ig` 运行 `vlog_inst_gen` 插件，按模块端口原有顺序生成实例化内容，并复制到剪贴板。本配置额外开启了连接位宽和行尾 `// input`、`// output`、`// inout` 标注。
 
-- `,in`：自定义纯 Vimscript 实现，在新标签页中生成实例化内容；默认保留端口的 packed 位宽。
-- `,ig`：`vlog_inst_gen` 的 Vimscript 实现，不依赖 Vim 的 Python 接口；使用 `,im` 可以切换复制、分屏显示或更新文件等输出模式。
+`,im` 只切换下一次 `,ig` 使用的输出模式，顺序为 **0 → 1 → 2 → 3 → 0**；按 `,im` 不会立即生成内容。插件默认从模式 0 开始。
+
+| 模式 | 按 `,ig` 后的结果 |
+| --- | --- |
+| 0 | 复制到剪贴板，并在命令区显示 |
+| 1 | 只复制到剪贴板 |
+| 2 | 复制到剪贴板，并在分屏中显示 |
+| 3 | 复制到剪贴板，并更新当前文件头部的插件实例化注释块 |
 
 脚本主要面向 Verilog-2001 风格的模块端口。复杂宏、特殊参数表达式或一个文件内存在多个模块时，请生成后检查结果。
 
-`,in`、`,tb`、`,ii` 和 `,oo` 的输入格式、生成内容和后续优化计划见 [自定义 Verilog 生成脚本](docs/custom-generators.md)。
+位宽与方向备注的开关、`,tb` 和端口声明生成功能见 [Verilog 生成脚本说明](docs/custom-generators.md)。
 
 ### 编辑界面
 
@@ -190,7 +195,7 @@ let g:verilog_port_columns = {
 | `pack/vim_airline_master/start` | 状态栏、Buffer 标签及主题 |
 | `pack/auto_pairs_master/start/auto_pairs_master` | 括号自动补全 |
 | `pack/rainbow/start/rain_bow` | 彩虹括号 |
-| `pack/user_define/start/user_define` | 文件头、实例化和 testbench 等自定义功能 |
+| `pack/user_define/start/user_define` | 文件头、testbench、端口声明及位宽解析等自定义功能 |
 | `pack/vlog_inst_gen/start/vlog_inst_gen` | Vimscript 版 Verilog 实例化工具 |
 | `pack/vimcdoc/opt/vimcdoc` | 可选的 Vim 中文帮助 |
 
@@ -203,7 +208,7 @@ let g:verilog_port_columns = {
 ## 使用教程
 
 - [ALE 与 Verilog 检查器使用指南](docs/ale.md)：说明不同检查器环境、Buffer/全局作用域、常用命令和排查步骤。
-- [自定义实例化与 Testbench 生成脚本](docs/custom-generators.md)：说明 `,in`、`,tb` 的运行环境、输入格式、当前限制和后续优化方向。
+- [Verilog 生成脚本说明](docs/custom-generators.md)：说明 `,ig`、`,im`、`,tb` 和端口声明生成的用法与限制。
 
 ## 常见问题
 
@@ -213,7 +218,7 @@ let g:verilog_port_columns = {
 
 ### 执行 `,tb` 提示 Python 错误
 
-执行 `:echo has('python')`。返回 `0` 表示当前 Vim 没有旧式 Python 接口；`,in` 和 `,ig` 不受影响。脚本现状和迁移计划见 [自定义生成脚本说明](docs/custom-generators.md)。
+执行 `:echo has('python')`。返回 `0` 表示当前 Vim 没有旧式 Python 接口；`,ig` 不受影响。脚本现状和迁移计划见 [生成脚本说明](docs/custom-generators.md)。
 
 ### 出现 `^M` 或换行符错误
 

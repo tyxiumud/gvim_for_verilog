@@ -1,38 +1,65 @@
-# 自定义实例化与 Testbench 生成脚本
+# Verilog 生成脚本说明
 
 [返回 README](../README.md)
 
-本项目包含三项自行编写的 Verilog 辅助功能：
+本项目的实例化由 `vlog_inst_gen` 插件生成，另外保留两项自定义功能：
 
-- `,in`：从当前模块生成实例化模板。
+- `,ig`：从当前文件中的模块生成实例化模板；`,im`：切换其输出模式。
 - `,tb`：从当前模块生成 testbench 骨架。
 - `,ii` / `,oo`：把一行“位宽 信号名”展开为对齐的端口声明（`input` / `output`）。
 
-`,in`、`,tb` 与 `vlog_inst_gen` 插件相互独立，源代码位于：
+对应的实现位于：
 
 ```text
-pack/user_define/start/user_define/plugin/vlog_inst_gen.vim
+pack/vlog_inst_gen/start/vlog_inst_gen/plugin/vlog_inst_gen.vim
+pack/user_define/start/user_define/autoload/verilog_tools.vim
 pack/user_define/start/user_define/plugin/vlog_tb_gen.vim
-```
-
-`,ii` / `,oo` 的实现位于：
-
-```text
 pack/user_define/start/user_define/autoload/verilog_port.vim
 ```
 
+`verilog_tools.vim` 只保留模块头解析器，供 `,ig` 的可选位宽功能使用；原先自写的 `,in` 实例化命令已移除。
+
+## `,ig` 生成与 `,im` 切换模式
+
+在普通模式下，`,ig` 立即运行 `:VlogInstGen`，生成实例化内容并复制到剪贴板。`,im` 运行 `:VlogInstMod`，只切换 **下一次** `,ig` 的输出模式，不生成内容。模式按 **0 → 1 → 2 → 3 → 0** 循环，默认从 0 开始。
+
+| 模式 | 按 `,ig` 后的结果 |
+| --- | --- |
+| 0 | 复制到剪贴板，并在命令区显示生成内容 |
+| 1 | 只复制到剪贴板 |
+| 2 | 复制到剪贴板，并在分屏中显示生成内容 |
+| 3 | 复制到剪贴板，并更新当前文件头部的插件实例化注释块 |
+
+例如，启动后直接按 `,ig` 使用模式 0；先按一次 `,im`，再按 `,ig` 使用模式 1。模式 3 会改动当前 Buffer，请确认生成结果后再保存文件。
+
+### 可选的位宽和方向备注
+
+仓库自带的 `vlog_inst_gen` 插件保持原有的端口顺序、`,ig` / `,im` 快捷键和四种输出模式。本仓库的 `.vimrc` 已开启两个独立选项：
+
+```vim
+let g:vlog_inst_gen_connect_width = 1
+let g:vlog_inst_gen_direction_comment = 1
+```
+
+- `g:vlog_inst_gen_connect_width`：把模块声明的 packed 位宽附在连接信号后，例如 `.data(data[WIDTH-1:0])`；设为 `0` 时只输出 `.data(data)`。
+- `g:vlog_inst_gen_direction_comment`：在连接行末自动添加 `// input`、`// output` 或 `// inout`；设为 `0` 时不添加。
+
+插件本身的两个选项默认都是 `0`，因此单独使用插件时仍保持原有格式。位宽通过仓库中的纯 Vimscript 模块头解析器读取，适用于 ANSI 风格端口；无法解析复杂宏或非 ANSI 声明时，插件仍会生成原有连接，但不附加位宽。方向标注使用插件本身解析的端口方向，不依赖 `i_`、`o_` 等命名前缀。
+
+连接信号后的 `[WIDTH-1:0]` 在 Verilog 中是实际的位选取。粘贴实例化结果后，需要确认目标信号已声明且位宽和参数一致。
+
 ## 当前运行环境
 
-`,in` 已改为纯 Vimscript 实现，不依赖 Python，并保持对 Vim 7.4 可用语法的兼容。`,tb` 仍通过旧式 `:python` 接口读取和写入 Vim Buffer；使用 `,tb` 前在 Vim/GVim 中执行：
+`,ig` 和它的可选位宽解析器都使用 Vimscript，不依赖 Python。`,tb` 仍通过旧式 `:python` 接口读取和写入 Vim Buffer；使用 `,tb` 前在 Vim/GVim 中执行：
 
 ```vim
 :echo has('python')
 ```
 
 - 返回 `1`：当前 Vim 可以执行旧版 `,tb` 脚本。
-- 返回 `0`：按 `,tb` 会报错，但不影响纯 Vimscript 的 `,in`。
+- 返回 `0`：按 `,tb` 会报错，但不影响 `,ig`。
 
-这里检查的是 `python`，不是 `python3`。`,tb` 后续会迁移到共享的纯 Vimscript 解析器；迁移完成前，可以使用 `,in` 或 `,ig` 生成实例化模板。
+这里检查的是 `python`，不是 `python3`。`,tb` 后续可迁移到纯 Vimscript 解析器；目前请使用 `,ig` 生成实例化模板。
 
 ## 建议的模块格式
 
@@ -51,39 +78,14 @@ module data_pipe #(
 endmodule
 ```
 
-为了让当前轻量解析器稳定识别，建议满足以下条件：
+为了让可选位宽解析器稳定识别，建议满足以下条件：
 
-- 一个文件只放一个需要生成的模块。
+- `,ig` 可以处理同一文件中的多个模块；`,tb` 目前建议一个文件只放一个目标模块。
 - 模块头使用 Verilog-2001 ANSI 端口声明，并以 `);` 结束。
 - 端口方向使用 `input`、`output` 或 `inout`。
 - 参数可以带类型、packed 位宽、下划线和表达式默认值。
 - 同一声明中的多个端口会继承方向、类型和 packed 位宽。
 - 生成后仍需人工检查宏、条件编译、interface 和其他复杂 SystemVerilog 结构。
-
-## 使用 `,in` 生成实例化模板
-
-1. 打开包含目标模块的 Verilog 文件。
-2. 确认光标所在 Buffer 是需要解析的模块。
-3. 在普通模式下按 `,in`。
-4. 脚本创建一个名为 `inst_<module>.v` 的 Buffer，并在新标签页中显示生成内容；同名 Buffer 或文件存在时会自动添加数字后缀。
-
-生成结果包含：
-
-- 模块名和默认实例名 `U_<MODULE>_0`。
-- 参数传递模板。
-- `input`、`output`、`inout` 端口连接。
-- 向量连接默认保留原始 packed 位宽，例如 `.data(data[WIDTH-1:0])`。
-- 按最长端口名计算的基础对齐。
-
-生成结果是未保存的普通 Buffer。确认结果后，请复制到目标文件或使用 `:write` 保存。
-
-如果临时不希望连接信号携带 packed 位宽，可以在 `.vimrc` 中设置：
-
-```vim
-let g:verilog_gen_connect_width = 0
-```
-
-默认值为 `1`，符合本项目显式显示端口位宽的习惯。
 
 ## 使用 `,tb` 生成 testbench
 
@@ -178,14 +180,14 @@ nnoremap <leader>io :call verilog_port#Expand('inout')<CR>
 
 ### Testbench 生成器的 Python 接口较旧
 
-`,tb` 使用 `:python`，很多现代 Vim 构建只支持 Python 3，或者完全不带 Python。`,in` 已经移除这项依赖；`,tb` 后续也会复用同一个纯 Vimscript 解析器。
+`,tb` 使用 `:python`，很多现代 Vim 构建只支持 Python 3，或者完全不带 Python。`,ig` 不依赖它；`,tb` 后续可复用纯 Vimscript 解析器。
 
 ### 解析器不是完整语法分析器
 
 当前实现适合结构规则的模块头，但不是完整的 Verilog/SystemVerilog 语法解析器。以下情况需要特别检查：
 
 - Verilog-95 非 ANSI 端口声明。
-- 一个文件中存在多个模块。
+- `,tb` 处理一个文件中的多个模块。
 - `ifdef`、宏展开或复杂预处理结构。
 - escaped identifier、interface、modport、结构体和部分复杂数组声明。
 - 依赖预处理宏才能形成完整模块头的代码。
@@ -207,7 +209,7 @@ nnoremap <leader>io :call verilog_port#Expand('inout')<CR>
 :echo has('python')
 ```
 
-返回 `0` 时，`,tb` 暂时无法使用；`,in` 和 `,ig` 仍可正常生成实例化模板。
+返回 `0` 时，`,tb` 暂时无法使用；`,ig` 仍可正常生成实例化模板。
 
 ### 提示找不到 ANSI module 或端口列表
 
@@ -220,13 +222,13 @@ nnoremap <leader>io :call verilog_port#Expand('inout')<CR>
 
 ### 端口或参数缺失
 
-先确认模块使用 Verilog-2001 ANSI 端口列表。`,in` 会识别参数类型、表达式、共享端口声明和 packed 位宽；遇到 interface、宏生成的模块头或其他复杂 SystemVerilog 结构时，可以使用 `,ig` 对比并人工检查。
+先确认模块使用 Verilog-2001 ANSI 端口列表。`,ig` 的位宽解析器会识别参数类型、表达式、共享端口声明和 packed 位宽；遇到 interface、宏生成的模块头或其他复杂 SystemVerilog 结构时，请人工检查生成结果。
 
 ## 后续优化方向
 
 建议按以下顺序演进：
 
-1. 让 `,tb` 复用 `,in` 已采用的共享模块、参数和端口解析器，移除旧式 Python 依赖。
+1. 让 `,tb` 复用现有的纯 Vimscript 模块、参数和端口解析器，移除旧式 Python 依赖。
 2. 增加更多 SystemVerilog、宏、多模块和数组端口测试样例。
 3. 让时钟周期、复位极性、仿真结束时间和 FSDB/VCD 波形格式可配置。
 4. 改善错误信息，在具体行号提示无法识别的声明。
