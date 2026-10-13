@@ -4,7 +4,7 @@
 
 本项目的实例化由 `vlog_inst_gen` 插件生成，另外保留两项自定义功能：
 
-- `,ig`：从当前文件中的模块生成实例化模板；`,im`：切换其输出模式。
+- `,ig`：从当前文件中的模块生成实例化模板；输出模式由参数设定。
 - `,tb`：从当前模块生成 testbench 骨架。
 - `,ii` / `,oo`：把一行“位宽 信号名”展开为对齐的端口声明（`input` / `output`）。
 
@@ -19,9 +19,9 @@ pack/user_define/start/user_define/autoload/verilog_port.vim
 
 `verilog_tools.vim` 只保留模块头解析器，供 `,ig` 的可选位宽功能使用；原先自写的 `,in` 实例化命令已移除。
 
-## `,ig` 生成与 `,im` 切换模式
+## `,ig` 生成与模式参数
 
-在普通模式下，`,ig` 立即运行 `:VlogInstGen`，生成实例化内容并复制到剪贴板。`,im` 运行 `:VlogInstMod`，只切换 **下一次** `,ig` 的输出模式，不生成内容。模式按 **0 → 1 → 2 → 3 → 0** 循环，默认从 0 开始。
+在普通模式下，`,ig` 立即运行 `:VlogInstGen`，生成实例化内容并复制到剪贴板。通过 `g:vlog_inst_gen_mode` 设定模式，默认值为 `2`；可在 `.vimrc` 中设置，例如 `let g:vlog_inst_gen_mode = 1`。
 
 | 模式 | 按 `,ig` 后的结果 |
 | --- | --- |
@@ -30,11 +30,11 @@ pack/user_define/start/user_define/autoload/verilog_port.vim
 | 2 | 复制到剪贴板，并在分屏中显示生成内容 |
 | 3 | 复制到剪贴板，并更新当前文件头部的插件实例化注释块 |
 
-例如，启动后直接按 `,ig` 使用模式 0；先按一次 `,im`，再按 `,ig` 使用模式 1。模式 3 会改动当前 Buffer，请确认生成结果后再保存文件。
+模式 3 会改动当前 Buffer，请确认生成结果后再保存文件。
 
 ### 可选的位宽和方向备注
 
-仓库自带的 `vlog_inst_gen` 插件保持原有的端口顺序、`,ig` / `,im` 快捷键和四种输出模式。本仓库的 `.vimrc` 已开启两个独立选项：
+仓库自带的 `vlog_inst_gen` 插件保持原有的端口顺序、`,ig` 快捷键和四种输出模式。本仓库的 `.vimrc` 已开启两个独立选项：
 
 ```vim
 let g:vlog_inst_gen_connect_width = 1
@@ -42,9 +42,10 @@ let g:vlog_inst_gen_direction_comment = 1
 ```
 
 - `g:vlog_inst_gen_connect_width`：把模块声明的 packed 位宽附在连接信号后，例如 `.data(data[WIDTH-1:0])`；设为 `0` 时只输出 `.data(data)`。
-- `g:vlog_inst_gen_direction_comment`：在连接行末自动添加 `// input`、`// output` 或 `// inout`；设为 `0` 时不添加。
+- `g:vlog_inst_gen_direction_comment`：在连接行末自动添加 `//input`、`//output` 或 `//inout`；设为 `0` 时不添加。`)` 与 `//` 之间没有空格。
+- `g:vlog_inst_gen_keep_comments`：默认 `0`，删除源模块端口列表中独立一行的 `//` 注释；设为 `1` 时保留，如 `//mac to pcs`、`//config`。此项与自动方向标注相互独立。
 
-插件本身的两个选项默认都是 `0`，因此单独使用插件时仍保持原有格式。位宽通过仓库中的纯 Vimscript 模块头解析器读取，适用于 ANSI 风格端口；无法解析复杂宏或非 ANSI 声明时，插件仍会生成原有连接，但不附加位宽。方向标注使用插件本身解析的端口方向，不依赖 `i_`、`o_` 等命名前缀。
+插件本身的这三个选项默认都是 `0`。位宽通过仓库中的纯 Vimscript 模块头解析器读取，条件编译分支另有逐行回退；无法解析复杂宏或非 ANSI 声明时，插件仍会生成连接，但部分位宽可能缺失。方向标注使用插件本身解析的端口方向，不依赖 `i_`、`o_` 等命名前缀。
 
 连接信号后的 `[WIDTH-1:0]` 在 Verilog 中是实际的位选取。粘贴实例化结果后，需要确认目标信号已声明且位宽和参数一致。
 

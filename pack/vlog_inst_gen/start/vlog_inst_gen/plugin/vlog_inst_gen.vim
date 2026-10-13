@@ -7,9 +7,9 @@
 "           can accress syntax check, then this plugin can work.                                
 "                           hot-keys
 "                           ,ig         : instance generate
-"                           ,im         : change working mode
+"                           g:vlog_inst_gen_mode: select working mode
 "       Supported working mode:
-"           mode 0(default): 
+"           mode 0:
 "               copy inst to clipboard and echo inst in commandline
 "           mode 1:
 "               only copy to clipboard
@@ -70,15 +70,10 @@ let b:vlog_inst_gen = 1
 "endif
 "map <F12> :unlet b:vlog_inst_gen<CR>:source C:/Program\ Files/Vim/vlog_inst_gen.vim<CR>
 command     VlogInstGen     :call Vlog_Inst_Gen()
-command     VlogInstMod     :call Vlog_Inst_Gen_Mode_Change()
 if maparg(",ig") != ""
     silent! unmap ,ig
 endif
-if maparg(",im") != ""
-    silent! unmap ,im
-endif
 nmap        ,ig             :VlogInstGen<CR>
-nmap        ,im             :VlogInstMod<CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "       varibales
@@ -90,10 +85,12 @@ hi  Vlog_Inst_Gen_Msg_0     gui=bold        guifg=#1E56DB       "lan
 hi  Vlog_Inst_Gen_Msg_1     gui=NONE        guifg=#DB26D2       "fen
 "hi  Vlog_Inst_Gen_Msg_1     gui=NONE        guifg=#10E054       "lv
 "golobal variables
-let g:vlog_inst_gen_mode = 0            "0: echo generated instance in current window
+if !exists('g:vlog_inst_gen_mode')
+let g:vlog_inst_gen_mode = 2            "0: echo generated instance in current window
                                         "1: do not echo generated instance, recommanded
                                         "2: echo generated instance in split window
                                         "3: insert generated instance in file head
+endif
 let g:check_port_declaration = 0        " never set to '1', disabled by v1.5
 let g:is_copy_inst_to_doublequotation = 1 "copy instance to clickboard,
                                         "so that you can use 'p' to 
@@ -104,6 +101,9 @@ if !exists('g:vlog_inst_gen_connect_width')
 endif
 if !exists('g:vlog_inst_gen_direction_comment')
     let g:vlog_inst_gen_direction_comment = 0
+endif
+if !exists('g:vlog_inst_gen_keep_comments')
+    let g:vlog_inst_gen_keep_comments = 0
 endif
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -268,6 +268,110 @@ fun! <SID>Line_Pre_Process(line_content)
     return lc
 endfun
 
+" Split parameter declarations only at commas outside nested expressions.
+fun! <SID>Split_Parameters(text)
+    let parts = []
+    let start = 0
+    let depth = 0
+    let quote = 0
+    let escaped = 0
+    for pos in range(0, strlen(a:text)-1)
+        let ch = strpart(a:text, pos, 1)
+        if quote
+            if escaped
+                let escaped = 0
+            elseif ch ==# '\'
+                let escaped = 1
+            elseif ch ==# '"'
+                let quote = 0
+            endif
+        elseif ch ==# '"'
+            let quote = 1
+        elseif ch ==# '(' || ch ==# '{' || ch ==# '['
+            let depth += 1
+        elseif ch ==# ')' || ch ==# '}' || ch ==# ']'
+            let depth -= 1
+        elseif ch ==# ',' && depth == 0
+            call add(parts, strpart(a:text, start, pos-start))
+            let start = pos+1
+        endif
+    endfor
+    call add(parts, strpart(a:text, start))
+    return parts
+endfun
+
+fun! <SID>Extract_Parameters(head)
+    let open = match(a:head, '^#(')
+    if open < 0
+        return [a:head, [], 0]
+    endif
+    let depth = 1
+    let pos = 2
+    let quote = 0
+    let escaped = 0
+    while pos < strlen(a:head) && depth > 0
+        let ch = strpart(a:head, pos, 1)
+        if quote
+            if escaped
+                let escaped = 0
+            elseif ch ==# '\'
+                let escaped = 1
+            elseif ch ==# '"'
+                let quote = 0
+            endif
+        elseif ch ==# '"'
+            let quote = 1
+        elseif ch ==# '('
+            let depth += 1
+        elseif ch ==# ')'
+            let depth -= 1
+        endif
+        let pos += 1
+    endw
+    if depth != 0
+        return [a:head, [], 4]
+    endif
+    let body = strpart(a:head, 2, pos-3)
+    let parameters = []
+    for item in <SID>Split_Parameters(body)
+        let equal = match(item, '=')
+        if equal < 0
+            return [a:head, [], 4]
+        endif
+        let left = substitute(strpart(item, 0, equal), '\s*$', '', '')
+        let name = matchstr(left, '[a-zA-Z_][a-zA-Z0-9_]*$')
+        if empty(name)
+            return [a:head, [], 4]
+        endif
+        call add(parameters, [name, strpart(item, equal+1)])
+    endfor
+    return [strpart(a:head, pos), parameters, 0]
+endfun
+
+" Recover straightforward declarations if conditional branches cannot be
+" parsed as one ANSI port list (for example each branch omits its final comma).
+fun! <SID>Fallback_Port_Widths(lines, metadata, conditional)
+    for line in a:lines
+        if line !~ '^\s*\(input\|output\|inout\)\>'
+            continue
+        endif
+        let clean = substitute(line, '//.*$', '', '')
+        let width = matchstr(clean, '\[[^]]*\]')
+        if empty(width)
+            continue
+        endif
+        let clean = substitute(clean, '^\s*\(input\|output\|inout\)\>\s*', '', '')
+        let clean = substitute(clean, '\[[^]]*\]', '', 'g')
+        let clean = substitute(clean, '\<\(wire\|reg\|logic\|signed\|unsigned\)\>', '', 'g')
+        for declaration in split(clean, ',')
+            let name = matchstr(declaration, '^\s*\zs[a-zA-Z_][a-zA-Z0-9_]*')
+            if has_key(a:metadata, name) && (a:conditional || empty(a:metadata[name].width))
+                let a:metadata[name].width = substitute(width, '\s*', '', 'g')
+            endif
+        endfor
+    endfor
+endfun
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "   Subfunction     : Merge_Module_Head
 "   Input           : non_comment_lines, module_num, module_info_list
@@ -278,21 +382,41 @@ endfun
 "       module xx(i1,i2,`ifdef A,o1,`endif,o2,o3);
 "       module xx(i1,i2,`ifdef A,o1@`else,o2@`endif,);
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-fun! <SID>Merge_Module_Head(non_comment_lines, module_num, module_info_list, module_merged_list)
+fun! <SID>Merge_Module_Head(non_comment_lines, module_num, module_info_list, module_merged_list, comment_lists)
     "parameter pre process
     call <SID>Clear_Parameter_List(a:module_merged_list)
+    call <SID>Clear_Parameter_List(a:comment_lists)
     "merge module head
     let i = 0
     while i < a:module_num
         "get info
-        let line_index = index(a:non_comment_lines, a:module_info_list[i][0])
-        let line_index_end = index(a:non_comment_lines, a:module_info_list[i][1])
+        let line_index = a:module_info_list[i][0]
+        let line_index_end = a:module_info_list[i][1]
+        let comments = []
         "initial variable
         let module_merged_line = ""
         let line_content = ""
         while line_index <= line_index_end
             "get line content
-            let line_content = getline(a:non_comment_lines[line_index])
+            let line_content = getline(line_index)
+            if index(a:non_comment_lines, line_index) < 0
+                if g:vlog_inst_gen_keep_comments && line_content =~ '^\s*//'
+                    let prefix = substitute(module_merged_line, '^module\s\+[a-zA-Z_][a-zA-Z0-9_]*', '', '')
+                    let prefix = substitute(prefix, '^\s*', '', '')
+                    let extracted = prefix =~ '^#(' ? <SID>Extract_Parameters(prefix) : [prefix, [], 0]
+                    let in_ports = extracted[2] == 0 && substitute(extracted[0], '^\s*', '', '') =~ '^('
+                    if in_ports
+                        let marker = '__VLOG_INST_COMMENT_'.len(comments).'__'
+                        call add(comments, substitute(line_content, '^\s*', '', ''))
+                        if !empty(module_merged_line) && module_merged_line[-1:] !~ '[,@(]'
+                            let module_merged_line .= '@'
+                        endif
+                        let module_merged_line .= marker.','
+                    endif
+                endif
+                let line_index += 1
+                continue
+            endif
             let line_content = <SID>Line_Pre_Process(line_content)
             if line_content =~ '^`\(\<ifdef\>\|\<else\>\|\<endif\>\).*'
                 let line_content = line_content.','
@@ -318,6 +442,7 @@ fun! <SID>Merge_Module_Head(non_comment_lines, module_num, module_info_list, mod
         "echo module_merged_line
         "store merged module info
         call add(a:module_merged_list, module_merged_line)
+        call add(a:comment_lists, comments)
         let i = i+1
     endw
 endfun
@@ -332,7 +457,7 @@ endfun
 "       find the module_name, parameters, verilog_format, port info
 "       and store into output list.
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-fun! <SID>Analysis_Module_Head(module_num, module_merged_list, module_name, para, vlog_95_flag, port, port_i, port_o, port_io)
+fun! <SID>Analysis_Module_Head(module_num, module_merged_list, comment_lists, module_name, para, vlog_95_flag, port, port_i, port_o, port_io)
     "initiciate parameters
     call <SID>Clear_Parameter_List(a:module_name)
     call <SID>Clear_Parameter_List(a:para)
@@ -376,30 +501,12 @@ fun! <SID>Analysis_Module_Head(module_num, module_merged_list, module_name, para
         "step 3: get parameter info
         "***********************************************
         if module_head =~ '^#(.*$'
-            let para_key = ''
-            let para_val = ''
-            let para_list = []
-            let module_head = substitute(module_head, '\<parameter\>\s*', '', 'g')  "del keyword: parameter
-            let module_head = substitute(module_head, '^#(', '', '')                "del #(
-            while 1
-                if module_head =~ '^)'      "parameter fetch end
-                    let module_head = substitute(module_head, '^)', '', '')         "del )
-                    break
-                elseif module_head =~ '^,'  "del ,
-                    let module_head = substitute(module_head, '^,', '', '')
-                    continue
-                elseif module_head =~ '^[a-zA-Z_][a-zA-Z0-9_]*=.*[,)]'   "find para
-                    let para_key = substitute(module_head, '^[a-zA-Z_][a-zA-Z0-9_]*\zs.*$', '', '')
-                    let module_head = substitute(module_head, '^[a-zA-Z_][a-zA-Z0-9_]*=', '', '')
-                    let para_val = substitute(module_head, '^.\{-}\zs[,)].*$', '', '')  "match the first , or )
-                    let module_head = substitute(module_head, '^.\{-}\ze[,)]', '', '')
-                    call add(para_list, [para_key, para_val])
-                    continue
-                else
-                    return 4            "Error 4: when find parameter
-                endif
-            endw
-            call add(a:para, para_list)     "store parameter list
+            let extracted = <SID>Extract_Parameters(module_head)
+            if extracted[2] != 0
+                return extracted[2]
+            endif
+            let module_head = extracted[0]
+            call add(a:para, extracted[1])
         else        "if has none parameter, then fullfill the position of module in list with empty value
             call add(a:para, [])
         endif
@@ -433,6 +540,11 @@ fun! <SID>Analysis_Module_Head(module_num, module_merged_list, module_name, para
                 continue
             elseif module_head =~ '^@.*'      "del @
                 let module_head = substitute(module_head, '^@', '', '')
+                continue
+            elseif module_head =~ '^__VLOG_INST_COMMENT_\d\+__,'
+                let comment_index = str2nr(matchstr(module_head, '^__VLOG_INST_COMMENT_\zs\d\+'))
+                call add(p_list, a:comment_lists[i][comment_index])
+                let module_head = substitute(module_head, '^__VLOG_INST_COMMENT_\d\+__,', '', '')
                 continue
             elseif module_head =~ '^\(\<input\>\|\<output\>\|\<inout\>\).*'         "find port direction
                 if module_head =~ '^\<input\>'
@@ -674,8 +786,14 @@ fun! <SID>Port_Metadata(module_info, port_list, port_i_list, port_o_list, port_i
         endfor
 
         if g:vlog_inst_gen_connect_width
+            let original_header = getline(a:module_info[module_index][0], a:module_info[module_index][1])
+            let conditional = !empty(filter(copy(original_header), 'v:val =~# ''^\s*`\(ifdef\|ifndef\|elsif\|else\|endif\)\>'''))
             try
-                let header = getline(a:module_info[module_index][0], a:module_info[module_index][1])
+                let header = copy(original_header)
+                "The width parser does not interpret preprocessor branches. Both
+                "branches can still describe distinct ports, so omit directive
+                "lines and recover their declarations in source order.
+                let header = filter(header, 'v:val !~# ''^\s*`\(ifdef\|ifndef\|elsif\|else\|endif\)\>''')
                 let parsed = verilog_tools#ParseLines(header)
                 for port in parsed.ports
                     if has_key(metadata, port.name)
@@ -683,10 +801,11 @@ fun! <SID>Port_Metadata(module_info, port_list, port_i_list, port_o_list, port_i
                     endif
                 endfor
             catch /^verilog-tools:/
-                " Unsupported headers keep the plugin's original connections.
+                " The per-declaration recovery below handles simple widths.
             catch /E117:/
-                " Unsupported headers keep the plugin's original connections.
+                " The per-declaration recovery below handles simple widths.
             endtry
+            call <SID>Fallback_Port_Widths(original_header, metadata, conditional)
         endif
         call add(metadata_list, metadata)
         let module_index = module_index + 1
@@ -701,7 +820,7 @@ endfun
 
 fun! <SID>Port_Comment(metadata)
     let direction = g:vlog_inst_gen_direction_comment ? get(a:metadata, 'direction', '') : ''
-    return empty(direction) ? '' : ' // '.direction
+    return empty(direction) ? '' : '//'.direction
 endfun
 
 fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list, metadata_list)
@@ -746,10 +865,21 @@ fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list, metada
         endif
         if empty(a:port_list[i]) == 0   "has port
             let list_len = len(a:port_list[i])
+            let last_port_index = list_len-1
+            while last_port_index >= 0 && a:port_list[i][last_port_index] =~ '^//'
+                let last_port_index -= 1
+            endw
             let list_index = 0
             while 1
                 let port = a:port_list[i][list_index]
-                if port =~ '^`\(\<ifdef\>\|\<else\>\|\<endif\>\).*'
+                if port =~ '^//'
+                    let inst .= port."\n"
+                    if list_index == list_len-1
+                        break
+                    endif
+                    let list_index += 1
+                    continue
+                elseif port =~ '^`\(\<ifdef\>\|\<else\>\|\<endif\>\).*'
                     let line_content = port."\n"
                     let inst = inst.line_content
                     if list_index == list_len-1
@@ -787,10 +917,14 @@ fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list, metada
                     while strwidth(line_content) < 68
                         let line_content = line_content." "
                     endw
-                    if list_index == list_len-1     "the last item
+                    if list_index == last_port_index     "the last item
                         let line_content = line_content.")".<SID>Port_Comment(metadata)."\n"
                         let inst = inst.line_content
-                        break
+                        if list_index == list_len-1
+                            break
+                        endif
+                        let list_index += 1
+                        continue
                     else
                         let line_content = line_content."),".<SID>Port_Comment(metadata)."\n"
                         let inst = inst.line_content
@@ -816,7 +950,7 @@ endfun
 "   Description     : generate inst and work in given mode.
 "   More            :
 "       supported mode: 0, 1, 2, 3
-"           mode 0(default): 
+"           mode 0:
 "               copy to clipboard and echo inst in commandline
 "           mode 1:
 "               only copy to clipboard
@@ -840,7 +974,8 @@ fun! Vlog_Inst_Gen()
     endif
     "step 3:    merge module head
     let merged_head_list = []
-    let merge_result = <SID>Merge_Module_Head(non_comment_lines, module_num, module_info, merged_head_list)
+    let comment_lists = []
+    let merge_result = <SID>Merge_Module_Head(non_comment_lines, module_num, module_info, merged_head_list, comment_lists)
     if merge_result != 0
         echohl ErrorMsg
         echo "Error ".merge_result.": when merging module head."
@@ -855,9 +990,8 @@ fun! Vlog_Inst_Gen()
     let port_i_list = []
     let port_o_list = []
     let port_io_list = []
-    let analysis_head_result = <SID>Analysis_Module_Head(module_num, merged_head_list, module_name_list, 
+    let analysis_head_result = <SID>Analysis_Module_Head(module_num, merged_head_list, comment_lists, module_name_list,
                 \   para_list, vlog_95_flag_list, port_list, port_i_list, port_o_list, port_io_list)
-    echo analysis_head_result
     if analysis_head_result != 0
         echohl ErrorMsg
         echo "Error ".analysis_head_result.": when analysis module head."
@@ -962,42 +1096,6 @@ fun! Vlog_Inst_Gen()
 endfun
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"   Subfunction     : Vlog_Inst_Gen_Mode_Change
-"   Input           : none
-"   Output          : none
-"   Return value    : none
-"   Description     : change vlog_inst_gen working mode.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-fun! Vlog_Inst_Gen_Mode_Change()
-    if g:vlog_inst_gen_mode == 0
-        let g:vlog_inst_gen_mode = 1
-        echohl Vlog_Inst_Gen_Msg_0
-        echo "Vlog_Inst_Gen Use Mode 1: only copy to clipboard."
-        echohl None
-    elseif g:vlog_inst_gen_mode == 1
-        let g:vlog_inst_gen_mode = 2
-        echohl Vlog_Inst_Gen_Msg_0
-        echo "Vlog_Inst_Gen Use Mode 2: copy to clipboard and display in split window."
-        echohl None
-    elseif g:vlog_inst_gen_mode == 2
-        let g:vlog_inst_gen_mode = 3
-        echohl Vlog_Inst_Gen_Msg_0
-        echo "Vlog_Inst_Gen Use Mode 3: copy to clipboard and update in file."
-        echohl None
-    elseif g:vlog_inst_gen_mode == 3
-        let g:vlog_inst_gen_mode = 0
-        echohl Vlog_Inst_Gen_Msg_0
-        echo "Vlog_Inst_Gen Use Mode 0: copy to clipboard and echo in commandline."
-        echohl None
-    else
-        let g:vlog_inst_gen_mode = 0
-        echohl Vlog_Inst_Gen_Msg_0
-        echo "Vlog_Inst_Gen Use Mode 0: copy to clipboard and echo in commandline."
-        echohl None
-    endif
-endfun
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "       Say something to zhizhi..
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "golobal variables

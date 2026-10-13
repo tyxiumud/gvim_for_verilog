@@ -97,7 +97,6 @@
 | `,oo` | 普通模式 | 根据“位宽 信号名”生成 `output wire` 声明 |
 | `,tb` | 普通模式 | 使用 Python 脚本生成 testbench 骨架 |
 | `,ig` | 普通模式 | 按当前模式生成实例化模板，并复制到剪贴板 |
-| `,im` | 普通模式 | 切换 `,ig` 的输出模式；本身不生成实例化内容 |
 | `Ctrl-j` | 普通模式 | 切换到下一个 Buffer |
 | `Ctrl-k` | 普通模式 | 切换到上一个 Buffer |
 | `Ctrl-h` | 普通模式 | 关闭当前 Buffer |
@@ -165,9 +164,9 @@ let g:verilog_port_columns = {
 
 ### 模块实例化
 
-使用 `,ig` 运行 `vlog_inst_gen` 插件，按模块端口原有顺序生成实例化内容，并复制到剪贴板。本配置额外开启了连接位宽和行尾 `// input`、`// output`、`// inout` 标注。
+使用 `,ig` 运行 `vlog_inst_gen` 插件，按模块端口原有顺序生成实例化内容，并复制到剪贴板。本配置额外开启了连接位宽和行尾 `//input`、`//output`、`//inout` 标注。
 
-`,im` 只切换下一次 `,ig` 使用的输出模式，顺序为 **0 → 1 → 2 → 3 → 0**；按 `,im` 不会立即生成内容。插件默认从模式 0 开始。
+通过 `g:vlog_inst_gen_mode` 设置 `,ig` 的输出模式，默认是模式 2。例如在 `.vimrc` 中写 `let g:vlog_inst_gen_mode = 1`。源文件中的独立 `//` 注释默认不复制；设置 `let g:vlog_inst_gen_keep_comments = 1` 可保留模块端口列表中的注释。
 
 | 模式 | 按 `,ig` 后的结果 |
 | --- | --- |
@@ -176,7 +175,7 @@ let g:verilog_port_columns = {
 | 2 | 复制到剪贴板，并在分屏中显示 |
 | 3 | 复制到剪贴板，并更新当前文件头部的插件实例化注释块 |
 
-脚本主要面向 Verilog-2001 风格的模块端口。复杂宏、特殊参数表达式或一个文件内存在多个模块时，请生成后检查结果。
+脚本主要面向 Verilog-2001 风格的模块端口。条件编译分支会尝试保留端口位宽；复杂宏和其他 SystemVerilog 结构仍需检查结果。
 
 位宽与方向备注的开关、`,tb` 和端口声明生成功能见 [Verilog 生成脚本说明](docs/custom-generators.md)。
 
@@ -208,7 +207,7 @@ let g:verilog_port_columns = {
 ## 使用教程
 
 - [ALE 与 Verilog 检查器使用指南](docs/ale.md)：说明不同检查器环境、Buffer/全局作用域、常用命令和排查步骤。
-- [Verilog 生成脚本说明](docs/custom-generators.md)：说明 `,ig`、`,im`、`,tb` 和端口声明生成的用法与限制。
+- [Verilog 生成脚本说明](docs/custom-generators.md)：说明 `,ig`、`,tb` 和端口声明生成的用法与限制。
 
 ## 常见问题
 
