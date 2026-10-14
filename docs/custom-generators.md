@@ -30,7 +30,7 @@ pack/user_define/start/user_define/autoload/verilog_port.vim
 | 2 | 复制到剪贴板，并在分屏中显示生成内容 |
 | 3 | 复制到剪贴板，并更新当前文件头部的插件实例化注释块 |
 
-模式 3 会改动当前 Buffer，请确认生成结果后再保存文件。
+模式 2 重复运行时刷新已有的实例化预览，不会叠加旧内容或不断新建分屏。模式 3 会改动当前 Buffer，请确认生成结果后再保存文件。
 
 ### 可选的位宽和方向备注
 
@@ -45,7 +45,13 @@ let g:vlog_inst_gen_direction_comment = 1
 - `g:vlog_inst_gen_direction_comment`：在连接行末自动添加 `//input`、`//output` 或 `//inout`；设为 `0` 时不添加。`)` 与 `//` 之间没有空格。
 - `g:vlog_inst_gen_keep_comments`：默认 `0`，删除源模块端口列表中独立一行的 `//` 注释；设为 `1` 时保留，如 `//mac to pcs`、`//config`。此项与自动方向标注相互独立。
 
-插件本身的这三个选项默认都是 `0`。位宽通过仓库中的纯 Vimscript 模块头解析器读取，条件编译分支另有逐行回退；无法解析复杂宏或非 ANSI 声明时，插件仍会生成连接，但部分位宽可能缺失。方向标注使用插件本身解析的端口方向，不依赖 `i_`、`o_` 等命名前缀。
+插件本身的这三个选项默认都是 `0`。位宽通过仓库中的纯 Vimscript 模块头解析器读取，条件编译分支另有逐行回退；无法解析的位宽可能缺失。方向标注使用插件本身解析的端口方向，不依赖 `i_`、`o_` 等命名前缀。
+
+### 参数、宏与条件编译
+
+实例化生成器按 [IEEE 1800-2023 SystemVerilog 标准](https://standards.ieee.org/ieee/1800/7743/)中的常见模块头写法处理具名参数和 ANSI 端口，保留参数默认值中的位选取、字符串、嵌套表达式及带参数的宏调用。参数列表和端口列表中的 `` `ifdef``、`` `ifndef``、`` `elsif``、`` `else``、`` `endif`` 会按原顺序写入实例化模板；分支末尾有无逗号均按源声明保留。
+
+插件不展开宏。像 `` `PORT_DECLARATIONS`` 这样由宏生成整段参数或端口声明的模块头，需要先经 Verilog/SystemVerilog 预处理器展开；否则生成器会报错，并保留原剪贴板内容。
 
 连接信号后的 `[WIDTH-1:0]` 在 Verilog 中是实际的位选取。粘贴实例化结果后，需要确认目标信号已声明且位宽和参数一致。
 
@@ -189,7 +195,7 @@ nnoremap <leader>io :call verilog_port#Expand('inout')<CR>
 
 - Verilog-95 非 ANSI 端口声明。
 - `,tb` 处理一个文件中的多个模块。
-- `ifdef`、宏展开或复杂预处理结构。
+- 复杂的嵌套条件编译结构生成后仍应检查每个分支的逗号和端口连接。
 - escaped identifier、interface、modport、结构体和部分复杂数组声明。
 - 依赖预处理宏才能形成完整模块头的代码。
 

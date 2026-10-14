@@ -85,6 +85,12 @@ function! s:StripComments(text) abort
     return l:result
 endfunction
 
+" Let the instance generator inspect parameter declarations without
+" duplicating the string-aware comment scanner.
+function! verilog_tools#StripComments(text) abort
+    return s:StripComments(a:text)
+endfunction
+
 function! s:SkipWhitespace(text, start) abort
     let l:index = a:start
     while l:index < strlen(a:text) && s:CharAt(a:text, l:index) =~# '\_s'

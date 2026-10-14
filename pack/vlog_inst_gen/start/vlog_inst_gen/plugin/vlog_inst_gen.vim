@@ -291,12 +291,12 @@ fun! <SID>Split_Parameters(text)
             let depth += 1
         elseif ch ==# ')' || ch ==# '}' || ch ==# ']'
             let depth -= 1
-        elseif ch ==# ',' && depth == 0
-            call add(parts, strpart(a:text, start, pos-start))
+        elseif (ch ==# ',' || ch ==# '@') && depth == 0
+            call add(parts, [strpart(a:text, start, pos-start), ch])
             let start = pos+1
         endif
     endfor
-    call add(parts, strpart(a:text, start))
+    call add(parts, [strpart(a:text, start), ''])
     return parts
 endfun
 
@@ -333,19 +333,53 @@ fun! <SID>Extract_Parameters(head)
     endif
     let body = strpart(a:head, 2, pos-3)
     let parameters = []
-    for item in <SID>Split_Parameters(body)
+    for entry in <SID>Split_Parameters(body)
+        let item = substitute(entry[0], '^\_s*\|\_s*$', '', 'g')
+        if empty(item)
+            continue
+        endif
+        if item =~ '^`\(ifdef\|ifndef\|elsif\|else\|endif\)\>'
+            call add(parameters, [item, '', entry[1]])
+            continue
+        endif
+        if item =~ '^`[a-zA-Z_][a-zA-Z0-9_]*\>'
+            return [a:head, [], 8]
+        endif
         let equal = match(item, '=')
         if equal < 0
             return [a:head, [], 4]
         endif
-        let left = substitute(strpart(item, 0, equal), '\s*$', '', '')
+        let left = substitute(strpart(item, 0, equal), '\_s*$', '', '')
         let name = matchstr(left, '[a-zA-Z_][a-zA-Z0-9_]*$')
         if empty(name)
             return [a:head, [], 4]
         endif
-        call add(parameters, [name, strpart(item, equal+1)])
+        let value = substitute(strpart(item, equal+1), '^\_s*\|\_s*$', '', 'g')
+        call add(parameters, [name, value, entry[1]])
     endfor
     return [strpart(a:head, pos), parameters, 0]
+endfun
+
+" Recover parameter text branch by branch when the complete ANSI header
+" cannot be parsed after removing conditional directives.
+fun! <SID>Raw_Parameter_Items(lines)
+    let text = verilog_tools#StripComments(join(a:lines, "\n"))
+    let pieces = []
+    for line in split(text, "\n", 1)
+        if line =~ '^\s*`\(ifdef\|ifndef\|elsif\|else\|endif\)\>'
+            call add(pieces, '@')
+        else
+            call add(pieces, line)
+        endif
+    endfor
+    let text = join(pieces, "\n")
+    let hash = match(text, '\<module\>\_s\+[a-zA-Z_][a-zA-Z0-9_]*\_s*\zs#\_s*(')
+    if hash < 0
+        return []
+    endif
+    let head = substitute(strpart(text, hash), '^#\_s*(', '#(', '')
+    let extracted = <SID>Extract_Parameters(head)
+    return extracted[2] == 0 ? extracted[1] : []
 endfun
 
 " Recover straightforward declarations if conditional branches cannot be
@@ -356,13 +390,21 @@ fun! <SID>Fallback_Port_Widths(lines, metadata, conditional)
             continue
         endif
         let clean = substitute(line, '//.*$', '', '')
-        let width = matchstr(clean, '\[[^]]*\]')
+        let clean = substitute(clean, '^\s*\(input\|output\|inout\)\>\s*', '', '')
+        let clean = substitute(clean, '\<\(wire\|reg\|logic\|signed\|unsigned\)\>', '', 'g')
+        let clean = substitute(clean, '^\s*', '', '')
+        let width = ''
+        while clean =~ '^\['
+            let dimension = matchstr(clean, '^\[[^]]*\]')
+            if empty(dimension)
+                break
+            endif
+            let width .= substitute(dimension, '\s*', '', 'g')
+            let clean = substitute(strpart(clean, strlen(dimension)), '^\s*', '', '')
+        endw
         if empty(width)
             continue
         endif
-        let clean = substitute(clean, '^\s*\(input\|output\|inout\)\>\s*', '', '')
-        let clean = substitute(clean, '\[[^]]*\]', '', 'g')
-        let clean = substitute(clean, '\<\(wire\|reg\|logic\|signed\|unsigned\)\>', '', 'g')
         for declaration in split(clean, ',')
             let name = matchstr(declaration, '^\s*\zs[a-zA-Z_][a-zA-Z0-9_]*')
             if has_key(a:metadata, name) && (a:conditional || empty(a:metadata[name].width))
@@ -418,10 +460,10 @@ fun! <SID>Merge_Module_Head(non_comment_lines, module_num, module_info_list, mod
                 continue
             endif
             let line_content = <SID>Line_Pre_Process(line_content)
-            if line_content =~ '^`\(\<ifdef\>\|\<else\>\|\<endif\>\).*'
+            if line_content =~ '^`\(\<ifdef\>\|\<ifndef\>\|\<elsif\>\|\<else\>\|\<endif\>\).*'
                 let line_content = line_content.','
                 if empty(module_merged_line) == 0
-                    if module_merged_line[len(module_merged_line)-1] != ","
+                    if module_merged_line[len(module_merged_line)-1] != "," && module_merged_line[len(module_merged_line)-1] != "("
                         let module_merged_line = module_merged_line."@".line_content
                     else
                         let module_merged_line = module_merged_line.line_content
@@ -438,7 +480,7 @@ fun! <SID>Merge_Module_Head(non_comment_lines, module_num, module_info_list, mod
         "  1. spaces after module/parameter/input/output/inout only keep one
         "  2. spaces not after module/parameter/input/output/inout delete all
         "echo module_merged_line
-        let module_merged_line = substitute(module_merged_line, '\(\<module\>\|\<parameter\>\|\<input\>\|\<output\>\|\<inout\>\|\<ifdef\>\)\@<!\s\+', '', 'g')
+        let module_merged_line = substitute(module_merged_line, '\(\<module\>\|\<parameter\>\|\<localparam\>\|\<int\>\|\<integer\>\|\<logic\>\|\<bit\>\|\<string\>\|\<input\>\|\<output\>\|\<inout\>\|\<ifdef\>\|\<ifndef\>\|\<elsif\>\)\@<!\s\+', '', 'g')
         "echo module_merged_line
         "store merged module info
         call add(a:module_merged_list, module_merged_line)
@@ -580,14 +622,16 @@ fun! <SID>Analysis_Module_Head(module_num, module_merged_list, comment_lists, mo
                     call add(pio_list, pid)
                 endif
                 continue
-            elseif module_head =~ '^`\(\<ifdef\>\|\<else\>\|\<endif\>\).*'          "find `ifdef/`else/`endif
-"                let pid = substitute(module_head, '^`ifdef\s[a-zA-Z0-9_]*\zs[,)].*$', '', '')
-"                let pid = substitute(module_head, '^.*\zs[,)].*$', '', '')
-"                let module_head = substitute(module_head, '^.*,', '', '')
-                let pid = substitute(module_head, '^`\(\<ifdef\>\s[a-zA-Z0-9_]*\|\<else\>\|\<endif\>\)\zs[,)].*$', '', '')
-                let module_head = substitute(module_head, '^`\(\<ifdef\>\s[a-zA-Z0-9_]*\|\<else\>\|\<endif\>\)', '', '')
-                call add(p_list, pid)
+            elseif module_head =~ '^`\(\<ifdef\>\|\<ifndef\>\|\<elsif\>\|\<else\>\|\<endif\>\).*'
+                let directive = matchstr(module_head, '^`\(\(ifdef\|ifndef\|elsif\)\s\+[a-zA-Z_][a-zA-Z0-9_]*\|else\|endif\)\>')
+                if empty(directive)
+                    return 6
+                endif
+                let module_head = strpart(module_head, strlen(directive))
+                call add(p_list, directive)
                 continue
+            elseif module_head =~ '^`[a-zA-Z_][a-zA-Z0-9_]*\>'
+                return 8        "Macro-generated declarations need preprocessing.
             else
                 return 6        "Error 6: when analysising port
             endif
@@ -813,6 +857,49 @@ fun! <SID>Port_Metadata(module_info, port_list, port_i_list, port_o_list, port_i
     return metadata_list
 endfun
 
+" The legacy header pass strips brackets and keywords so it can recognize
+" ports. Recover parameter defaults from the original declaration before
+" formatting them, preserving bit selects and quoted strings.
+fun! <SID>Restore_Parameter_Defaults(module_info, para_list)
+    let module_index = 0
+    while module_index < len(a:module_info)
+        if !empty(a:para_list[module_index])
+            let header = getline(a:module_info[module_index][0], a:module_info[module_index][1])
+            let named = filter(copy(a:para_list[module_index]), 'v:val[0] !~# ''^`''')
+            let parsed_parameters = []
+            try
+                let cleaned_header = filter(copy(header), 'v:val !~# ''^\s*`\(ifdef\|ifndef\|elsif\|else\|endif\)\>''')
+                let parsed_parameters = verilog_tools#ParseLines(cleaned_header).parameters
+            catch /^verilog-tools:/
+                " Conditional branches can form separate valid declarations.
+            catch /E117:/
+                " The optional parser may not be installed.
+            endtry
+            if len(parsed_parameters) != len(named)
+                try
+                    let parsed_parameters = <SID>Raw_Parameter_Items(header)
+                catch /^verilog-tools:/
+                    " Keep the legacy value if comments are malformed.
+                catch /E117:/
+                    " Keep the legacy value when the optional parser is absent.
+                endtry
+            endif
+            if len(named) == len(parsed_parameters)
+                for index in range(0, len(named)-1)
+                    if type(parsed_parameters[index]) == type({})
+                        let named[index][0] = parsed_parameters[index].name
+                        let named[index][1] = parsed_parameters[index].default
+                    else
+                        let named[index][0] = parsed_parameters[index][0]
+                        let named[index][1] = parsed_parameters[index][1]
+                    endif
+                endfor
+            endif
+        endif
+        let module_index += 1
+    endwhile
+endfun
+
 fun! <SID>Port_Connection(name, metadata)
     let width = g:vlog_inst_gen_connect_width ? get(a:metadata, 'width', '') : ''
     return a:name.width
@@ -836,9 +923,18 @@ fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list, metada
             let has_para_flag = 1
             let inst = inst.a:module_name[i]." #(\n"
             let list_len = len(a:para_list[i])
+            let conditional_parameters = !empty(filter(copy(a:para_list[i]), 'v:val[0] =~# ''^`'''))
             let list_index = 0
             while 1
                 let para = a:para_list[i][list_index]
+                if para[0] =~# '^`'
+                    let inst .= para[0]."\n"
+                    let list_index += 1
+                    if list_index == list_len
+                        break
+                    endif
+                    continue
+                endif
                 let line_content = "    .".para[0]
                 while strwidth(line_content) < 36
                     let line_content = line_content." "
@@ -847,7 +943,14 @@ fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list, metada
                 while strwidth(line_content) < 68
                     let line_content = line_content." "
                 endw
-                if list_index == list_len-1     "the last item
+                if conditional_parameters
+                    let line_content .= ")".(para[2] ==# ',' ? ',' : '')."\n"
+                    let inst .= line_content
+                    let list_index += 1
+                    if list_index == list_len
+                        break
+                    endif
+                elseif list_index == list_len-1     "the last item
                     let line_content = line_content."))\n"
                     let inst = inst.line_content
                     break
@@ -858,6 +961,9 @@ fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list, metada
                     continue
                 endif
             endw
+            if conditional_parameters
+                let inst .= ")\n"
+            endif
         endif
         "port process
         if has_para_flag == 1           "has parameter
@@ -879,7 +985,7 @@ fun! <SID>Inst_Part_Format(module_num, module_name, para_list, port_list, metada
                     endif
                     let list_index += 1
                     continue
-                elseif port =~ '^`\(\<ifdef\>\|\<else\>\|\<endif\>\).*'
+                elseif port =~ '^`\(\<ifdef\>\|\<ifndef\>\|\<elsif\>\|\<else\>\|\<endif\>\).*'
                     let line_content = port."\n"
                     let inst = inst.line_content
                     if list_index == list_len-1
@@ -994,7 +1100,11 @@ fun! Vlog_Inst_Gen()
                 \   para_list, vlog_95_flag_list, port_list, port_i_list, port_o_list, port_io_list)
     if analysis_head_result != 0
         echohl ErrorMsg
-        echo "Error ".analysis_head_result.": when analysis module head."
+        if analysis_head_result == 8
+            echo "Macro-generated parameter or port declarations require preprocessing before instance generation."
+        else
+            echo "Error ".analysis_head_result.": when analysis module head."
+        endif
         echohl None
         return 3
     endif
@@ -1034,6 +1144,7 @@ fun! Vlog_Inst_Gen()
         endw
     endif
     "step 6: get inst part and copy to clipboard
+    call <SID>Restore_Parameter_Defaults(module_info, para_list)
     let metadata_list = <SID>Port_Metadata(module_info, port_list, port_i_list, port_o_list, port_io_list)
     let inst_part = <SID>Inst_Part_Format(module_num, module_name_list, para_list, port_list, metadata_list)
     let @+ = inst_part
@@ -1055,8 +1166,17 @@ fun! Vlog_Inst_Gen()
         echo module_num." insts has been copyed."
         echohl None
     elseif g:vlog_inst_gen_mode == 2
-        exe "split __Instance_File__"
-        silent put! =inst_part
+        let preview_window = bufwinnr('__Instance_File__')
+        if preview_window > 0
+            execute preview_window.'wincmd w'
+        else
+            exe "split __Instance_File__"
+        endif
+        setlocal modifiable
+        setlocal buftype=nofile
+        silent %delete _
+        call setline(1, split(inst_part, "\n", 1))
+        setlocal nomodified
         exe "normal gg"
         "set buffer
         setlocal noswapfile
