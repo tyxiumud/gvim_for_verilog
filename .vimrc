@@ -160,22 +160,8 @@ let g:vlog_inst_gen_connect_width = 1
 let g:vlog_inst_gen_direction_comment = 1
 "Drop source port comments by default; set to 1 to retain //mac to pcs, //config, etc.
 let g:vlog_inst_gen_keep_comments = 0
-"Show generated instances in a split window (mode 2).
+"Choose the instance output mode here (0-3); default to split-window mode 2.
 let g:vlog_inst_gen_mode = 2
-"Older installed plugin copies reset the mode and recreate ,im while loading.
-function! s:ConfigureVlogInstGen() abort
-    let g:vlog_inst_gen_mode = 2
-    if maparg(',im', 'n') ==# ':VlogInstMod<CR>'
-        silent! nunmap ,im
-    endif
-    if exists(':VlogInstMod')
-        silent! delcommand VlogInstMod
-    endif
-endfunction
-augroup VlogInstGenMode
-    autocmd!
-    autocmd VimEnter * call <SID>ConfigureVlogInstGen()
-augroup END
 "use ,tb to generate testbench_file{{{
 nnoremap <leader>tb :call Autotb()<cr>
 "}}}

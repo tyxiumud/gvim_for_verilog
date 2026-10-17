@@ -166,7 +166,9 @@ let g:verilog_port_columns = {
 
 使用 `,ig` 运行 `vlog_inst_gen` 插件，按模块端口原有顺序生成实例化内容，并复制到剪贴板。本配置额外开启了连接位宽和行尾 `//input`、`//output`、`//inout` 标注。
 
-通过 `g:vlog_inst_gen_mode` 设置 `,ig` 的输出模式，默认是模式 2。例如在 `.vimrc` 中写 `let g:vlog_inst_gen_mode = 1`。源文件中的独立 `//` 注释默认不复制；设置 `let g:vlog_inst_gen_keep_comments = 1` 可保留模块端口列表中的注释。
+通过 `.vimrc` 中的 `g:vlog_inst_gen_mode` 设置 `,ig` 的输出模式，默认是模式 2；把现有的 `let g:vlog_inst_gen_mode = 2` 改为 `1`，即可只复制到剪贴板。源文件中的独立 `//` 注释默认不复制；把 `g:vlog_inst_gen_keep_comments` 改为 `1` 可保留模块端口列表中的注释。`,im` 模式切换命令已移除。
+
+更新已有安装时，须把仓库 `.vimrc` 的这两项设置同步到实际加载的 `_vimrc` / `.vimrc`，并更新 `pack/vlog_inst_gen/start/vlog_inst_gen/plugin/vlog_inst_gen.vim`；只更新仓库文件不会改变已安装的 GVim。
 
 | 模式 | 按 `,ig` 后的结果 |
 | --- | --- |

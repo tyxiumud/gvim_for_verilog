@@ -21,7 +21,7 @@ pack/user_define/start/user_define/autoload/verilog_port.vim
 
 ## `,ig` 生成与模式参数
 
-在普通模式下，`,ig` 立即运行 `:VlogInstGen`，生成实例化内容并复制到剪贴板。通过 `g:vlog_inst_gen_mode` 设定模式，默认值为 `2`；可在 `.vimrc` 中设置，例如 `let g:vlog_inst_gen_mode = 1`。
+在普通模式下，`,ig` 立即运行 `:VlogInstGen`，生成实例化内容并复制到剪贴板。通过 `.vimrc` 中的 `g:vlog_inst_gen_mode` 设定模式，默认值为 `2`；要切换模式，修改已有的 `let g:vlog_inst_gen_mode = 2` 即可。旧的 `,im` 模式切换已移除。
 
 | 模式 | 按 `,ig` 后的结果 |
 | --- | --- |
