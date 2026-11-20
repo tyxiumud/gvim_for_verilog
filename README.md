@@ -158,9 +158,17 @@ let g:verilog_port_columns = {
 
 ### 文件头和模块骨架
 
-在新文件中按 `F3`，会添加作者、文件名、修改时间、模块名和基础代码分区。再次按 `F3` 时，只更新文件名和修改时间。
+按 `F3` 添加文件头。空文件会同时生成模块骨架，已有代码会保留。
 
-模块名默认取当前文件名，并转换为大写。需要不同命名规则时，可以修改 `pack/user_define/start/user_define/plugin/addtitle.vim`。
+在 `.vimrc` 中修改以下配置即可选择文件头模板：
+
+- `g:verilog_title_template` 默认为 `'personal'`，显示个人网站 `g:verilog_title_website`。设为 `'company'` 时显示“版权所有”，内容取自 `g:verilog_title_copyright_holder`。
+- `g:verilog_title_author` 和 `g:verilog_title_email` 设置作者与邮箱，邮箱可以留空。
+- `g:verilog_title_version` 设置首个版本号，默认为 `'1.0'`。首次生成时自动填入版本号、当天日期和作者，“版本说明”留给作者填写。
+
+再次按 `F3` 时，只更新文件头中的文件名和最近修改时间，版本记录和描述会保留。旧版文件头也按相同方式更新。
+
+模块名默认取当前文件名，并转换为大写。
 
 ### 模块实例化
 
