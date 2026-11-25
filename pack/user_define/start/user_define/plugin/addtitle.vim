@@ -11,7 +11,7 @@ function! AddTitle() abort
     let l:version = get(g:, 'verilog_title_version', '1.0')
     let l:now = localtime()
     if get(g:, 'verilog_title_template', 'personal') ==# 'company'
-        let l:identity = '// 版权所有: ' . get(g:, 'verilog_title_copyright_holder', '')
+        let l:identity = '// Copyright: ' . get(g:, 'verilog_title_copyright_holder', '')
     else
         let l:identity = '// Personal Website: ' . get(g:, 'verilog_title_website', 'https://tyxiumud.github.io/')
     endif
@@ -29,7 +29,7 @@ function! AddTitle() abort
         \ '//',
         \ '// Description: ',
         \ '//',
-        \ '// 版本 | 日期 | 作者 | 版本说明',
+        \ '// Version | Date | Author | Change Log',
         \ printf('// %s | %s | %s |', l:version, strftime('%Y-%m-%d', l:now), l:author),
         \ '//',
         \ s:border,
@@ -80,6 +80,27 @@ function! s:HeaderFields() abort
     return l:fields
 endfunction
 
+" Rewrite legacy Chinese header labels to the English ones while updating.
+function! s:NormalizeHeaderLabels() abort
+    let l:line_number = 1
+    while l:line_number <= line('$')
+        let l:line = getline(l:line_number)
+        if l:line =~# '^\s*$'
+            let l:line_number += 1
+            continue
+        endif
+        if l:line !~# '^\%(//\|#\)'
+            break
+        endif
+        let l:new = substitute(l:line, '^\(\s*\%(//\|#\)\)\s*版权所有:\s*', '\1 Copyright: ', '')
+        let l:new = substitute(l:new, '^\(\s*\%(//\|#\)\)\s*版本\s*|.*版本说明\s*$', '\1 Version | Date | Author | Change Log', '')
+        if l:new !=# l:line
+            call setline(l:line_number, l:new)
+        endif
+        let l:line_number += 1
+    endwhile
+endfunction
+
 function! UpdateTitle() abort
     let l:fields = s:HeaderFields()
     if !l:fields.modified
@@ -92,6 +113,7 @@ function! UpdateTitle() abort
         call setline(l:fields.filename, l:prefix . ' ' . expand('%:t'))
     endif
     echo 'File header updated.'
+    call s:NormalizeHeaderLabels()
     return 1
 endfunction
 

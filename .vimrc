@@ -153,7 +153,7 @@ augroup filetype_vim
 augroup END
 "}}}
 "进行版权声明的设置,添加或更新头 F3 {{{
-"personal 保留个人网站，company 改为版权所有（填写下方的版权方）。
+"personal 保留个人网站，company 改为 Copyright（填写下方的版权方）。
 let g:verilog_title_template = 'personal'
 let g:verilog_title_author = 'Jelly'
 let g:verilog_title_email = '823300630@qq.com'
