@@ -162,13 +162,14 @@ let g:verilog_title_copyright_holder = ''
 let g:verilog_title_version = '1.0'
 nnoremap <F3> :call TitleDet()<cr>
 "}}}
-"vlog_inst_gen (,ig): show packed widths and port directions in the instance
+"vlog_inst_gen (,ig): show packed widths and port directions in the instance{{{
 let g:vlog_inst_gen_connect_width = 1
 let g:vlog_inst_gen_direction_comment = 1
 "Drop source port comments by default; set to 1 to retain //mac to pcs, //config, etc.
 let g:vlog_inst_gen_keep_comments = 0
 "Choose the instance output mode here (0-3); default to split-window mode 2.
 let g:vlog_inst_gen_mode = 2
+"}}}
 "use ,tb to generate testbench_file{{{
 nnoremap <leader>tb :call Autotb()<cr>
 "}}}
