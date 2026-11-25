@@ -153,6 +153,13 @@ augroup filetype_vim
 augroup END
 "}}}
 "进行版权声明的设置,添加或更新头 F3 {{{
+"personal 保留个人网站，company 改为 Copyright（填写下方的版权方）。
+let g:verilog_title_template = 'personal'
+let g:verilog_title_author = 'Jelly'
+let g:verilog_title_email = '823300630@qq.com'
+let g:verilog_title_website = 'https://tyxiumud.github.io/'
+let g:verilog_title_copyright_holder = ''
+let g:verilog_title_version = '1.0'
 nnoremap <F3> :call TitleDet()<cr>
 "}}}
 "vlog_inst_gen (,ig): show packed widths and port directions in the instance

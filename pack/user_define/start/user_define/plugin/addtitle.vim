@@ -1,60 +1,124 @@
-"addtitle Function{{{
-function AddTitle()
-    call append(0,"//=============================================================================")
-    call append(1,"//")
-    call append(2,"// Author: Jelly Email: 823300630@qq.com")
-    call append(3,"//")
-    call append(4,"// Personal Website: https://tyxiumud.github.io/")
-    call append(5,"//")
-    call append(6,"// Last modified: ".strftime("%Y-%m-%d %H:%M"))
-    call append(7,"//")
-    call append(8,"// Filename: ".expand("%:t"))
-    call append(9,"//")
-    call append(10,"// Description: ")
-    call append(11,"//")
-    call append(12,"//=============================================================================")
-    call append(13,"module ".toupper(expand("%:t:r"))."(")
-    call append(14,"")
-    call append(15,");")
-    call append(16,"//********************define parameter and internal signals********************")
-    call append(17,"")
-    call append(18,"//*****************************main code***************************************")
-    call append(19,"")
-    call append(20,"endmodule")
-    echohl WarningMsg | echo "Successful in adding the copyright." | echohl None
-endf
+scriptencoding utf-8
 
-"更新最近修改时间和文件名
-function UpdateTitle()
-    " 保存当前光标位置
-    let save_cursor = getpos('.')
+let s:border = '//============================================================================='
+let s:modified_pattern = '^\%(//\|#\)\s*Last modified:'
+let s:filename_pattern = '^\%(//\|#\)\s*Filename:'
+let s:timestamp_format = '%Y-%m-%d %H:%M'
 
-    " 更新 Last modified 行（匹配 // 开头的行）
-    execute '/\/\/\s*Last modified:/s@:.*$@\=strftime(":\t%Y-%m-%d %H:%M")@'
-    " 更新 Filename 行（匹配 // 开头的行）
-    execute '/\/\/\s*Filename:/s@:.*$@\=":\t\t".expand("%:t")@'
-    execute "noh"
+function! AddTitle() abort
+    let l:author = get(g:, 'verilog_title_author', 'Jelly')
+    let l:email = get(g:, 'verilog_title_email', '823300630@qq.com')
+    let l:version = get(g:, 'verilog_title_version', '1.0')
+    let l:now = localtime()
+    if get(g:, 'verilog_title_template', 'personal') ==# 'company'
+        let l:identity = '// Copyright: ' . get(g:, 'verilog_title_copyright_holder', '')
+    else
+        let l:identity = '// Personal Website: ' . get(g:, 'verilog_title_website', 'https://tyxiumud.github.io/')
+    endif
 
-    " 恢复光标位置
-    call setpos('.', save_cursor)
-    echohl WarningMsg | echo "Successful in updating the copy right." | echohl None
+    let l:header = [
+        \ s:border,
+        \ '//',
+        \ '// Author: ' . l:author . (empty(l:email) ? '' : ' Email: ' . l:email),
+        \ '//',
+        \ l:identity,
+        \ '//',
+        \ '// Last modified: ' . strftime(s:timestamp_format, l:now),
+        \ '//',
+        \ '// Filename: ' . expand('%:t'),
+        \ '//',
+        \ '// Description: ',
+        \ '//',
+        \ '// Version | Date | Author | Change Log',
+        \ printf('// %s | %s | %s |', l:version, strftime('%Y-%m-%d', l:now), l:author),
+        \ '//',
+        \ s:border,
+        \ ]
+    if line('$') == 1 && getline(1) ==# ''
+        call setline(1, l:header + [
+            \ 'module ' . toupper(expand('%:t:r')) . '(',
+            \ '',
+            \ ');',
+            \ '//********************define parameter and internal signals********************',
+            \ '',
+            \ '//*****************************main code***************************************',
+            \ '',
+            \ 'endmodule',
+            \ ])
+    else
+        call append(0, l:header)
+    endif
+    echo 'File header added.'
 endfunction
 
-"判断前10行代码里面，是否有Last modified这个单词，
-"如果没有的话，代表没有添加过作者信息，需要新添加；
-"如果有的话，那么只需要更新即可
-function TitleDet()
-    let n = 1
-    " 检查前10行（含第10行）
-    while n <= 10
-        let line = getline(n)
-        " 匹配 // 或 # 开头的 Last modified 行（兼容新旧格式）
-        if line =~ '^\(\/\/\|#\)\s*\S*Last\smodified:\S*.*$'
-            call UpdateTitle()
-            return
+" Collect fields only in the leading comment block, up to its closing border.
+function! s:HeaderFields() abort
+    let l:fields = {'modified': 0, 'filename': 0}
+    let l:line_number = 1
+    let l:seen_comment = 0
+    let l:seen_border = 0
+    while l:line_number <= line('$')
+        let l:line = getline(l:line_number)
+        if l:line ==# s:border
+            if l:seen_border || l:seen_comment
+                break
+            endif
+            let l:seen_border = 1
+            let l:seen_comment = 1
+        elseif l:line =~# '^\%(//\|#\)'
+            let l:seen_comment = 1
+            if !l:fields.modified && l:line =~# s:modified_pattern
+                let l:fields.modified = l:line_number
+            elseif !l:fields.filename && l:line =~# s:filename_pattern
+                let l:fields.filename = l:line_number
+            endif
+        elseif l:seen_comment || l:line !~# '^\s*$'
+            break
         endif
-        let n = n + 1
+        let l:line_number += 1
     endwhile
-    call AddTitle()
+    return l:fields
 endfunction
-"}}}
+
+" Rewrite legacy Chinese header labels to the English ones while updating.
+function! s:NormalizeHeaderLabels() abort
+    let l:line_number = 1
+    while l:line_number <= line('$')
+        let l:line = getline(l:line_number)
+        if l:line =~# '^\s*$'
+            let l:line_number += 1
+            continue
+        endif
+        if l:line !~# '^\%(//\|#\)'
+            break
+        endif
+        let l:new = substitute(l:line, '^\(\s*\%(//\|#\)\)\s*版权所有:\s*', '\1 Copyright: ', '')
+        let l:new = substitute(l:new, '^\(\s*\%(//\|#\)\)\s*版本\s*|.*版本说明\s*$', '\1 Version | Date | Author | Change Log', '')
+        if l:new !=# l:line
+            call setline(l:line_number, l:new)
+        endif
+        let l:line_number += 1
+    endwhile
+endfunction
+
+function! UpdateTitle() abort
+    let l:fields = s:HeaderFields()
+    if !l:fields.modified
+        return 0
+    endif
+    let l:prefix = matchstr(getline(l:fields.modified), s:modified_pattern)
+    call setline(l:fields.modified, l:prefix . ' ' . strftime(s:timestamp_format))
+    if l:fields.filename
+        let l:prefix = matchstr(getline(l:fields.filename), s:filename_pattern)
+        call setline(l:fields.filename, l:prefix . ' ' . expand('%:t'))
+    endif
+    echo 'File header updated.'
+    call s:NormalizeHeaderLabels()
+    return 1
+endfunction
+
+function! TitleDet() abort
+    if !UpdateTitle()
+        call AddTitle()
+    endif
+endfunction
