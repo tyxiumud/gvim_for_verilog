@@ -1,0 +1,62 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vimscript-tests:
+    name: vim tests (${{ matrix.vim }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # vim-nox has no clipboard at all, vim-gtk3 does: the pair covers the
+      # E354 failure mode without giving up coverage on clipboard builds.
+      matrix:
+        vim: [vim-nox, vim-gtk3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vim
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ${{ matrix.vim }}
+      - name: Report clipboard features
+        run: vim --version | sed -n '1,3p'
+      - name: Run tests
+        run: bash scripts/run_tests.sh
+
+  vimrc-smoke:
+    name: vimrc + bundled packs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vim
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends vim-gtk3
+      - name: Load the full .vimrc with the bundled packs
+        run: |
+          out=$(mktemp)
+          log=$(mktemp)
+          vim --cmd "set packpath^=$PWD" -u .vimrc -i NONE -n -es \
+            -c "call writefile(['title_det=' . exists('*TitleDet'), 'vlog_inst_gen=' . exists('*Vlog_Inst_Gen'), 'map_ig=' . (!empty(maparg(',ig'))), 'nerdtree=' . exists(':NERDTreeToggle'), 'ale=' . exists(':ALEToggle')], '$out')" \
+            -c 'qa!' >"$log" 2>&1
+          cat "$out"
+          cat "$log"
+          # Any E-code means the config or a plugin broke while loading.
+          if grep -qE '(^|[^A-Za-z])E[0-9]{2,4}:' "$log" "$out"; then
+            echo "::error::errors while loading .vimrc"
+            exit 1
+          fi
+          grep -qx 'title_det=1' "$out" || { echo "::error::TitleDet missing"; exit 1; }
+          grep -qx 'vlog_inst_gen=1' "$out" || { echo "::error::Vlog_Inst_Gen missing"; exit 1; }
+          grep -qx 'map_ig=1' "$out" || { echo "::error::,ig mapping missing"; exit 1; }

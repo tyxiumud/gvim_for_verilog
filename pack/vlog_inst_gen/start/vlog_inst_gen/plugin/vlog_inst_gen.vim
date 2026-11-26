@@ -1147,7 +1147,13 @@ fun! Vlog_Inst_Gen()
     call <SID>Restore_Parameter_Defaults(module_info, para_list)
     let metadata_list = <SID>Port_Metadata(module_info, port_list, port_i_list, port_o_list, port_io_list)
     let inst_part = <SID>Inst_Part_Format(module_num, module_name_list, para_list, port_list, metadata_list)
-    let @+ = inst_part
+    " '+' 寄存器不是到处都有：Unix 终端版需要 +xterm_clipboard 或 GUI，否则
+    " 取用会报 E354（Windows 终端版、gvim 都没有这个问题）。写不进去就跳过，
+    " 下面还会写无名寄存器，所以 p 粘贴的行为不变。
+    try
+        let @+ = inst_part
+    catch /^Vim\%((\a\+)\)\=:E354/
+    endtry
     if g:is_copy_inst_to_doublequotation
         let @" = inst_part
     endif
