@@ -5,16 +5,49 @@ let s:modified_pattern = '^\%(//\|#\)\s*Last modified:'
 let s:filename_pattern = '^\%(//\|#\)\s*Filename:'
 let s:timestamp_format = '%Y-%m-%d %H:%M'
 
+" Pad a cell to a fixed display width, centred. Width is measured with
+" strdisplaywidth() so CJK names line up with ASCII ones.
+function! s:CenterCell(text, width) abort
+    let l:pad = a:width - strdisplaywidth(a:text)
+    if l:pad <= 0
+        return a:text
+    endif
+    let l:left = l:pad / 2
+    return repeat(' ', l:left) . a:text . repeat(' ', l:pad - l:left)
+endfunction
+
+
 function! AddTitle() abort
     let l:author = get(g:, 'verilog_title_author', 'Jelly')
     let l:email = get(g:, 'verilog_title_email', '823300630@qq.com')
     let l:version = get(g:, 'verilog_title_version', '1.0')
     let l:now = localtime()
-    if get(g:, 'verilog_title_template', 'personal') ==# 'company'
+    " 0 选公司头（Copyright 行），1 选个人头（Personal Website 行）；旧的
+    " 字符串写法 'company' / 'personal' 仍然识别，已有的 vimrc 不用改。
+    let l:template = get(g:, 'verilog_title_template', 1)
+    if type(l:template) == v:t_string
+        let l:company = l:template ==# 'company'
+    else
+        let l:company = l:template == 0
+    endif
+    if l:company
         let l:identity = '// Copyright: ' . get(g:, 'verilog_title_copyright_holder', '')
     else
         let l:identity = '// Personal Website: ' . get(g:, 'verilog_title_website', 'https://tyxiumud.github.io/')
     endif
+
+    " Version table: fixed column widths keep the '|' separators aligned and
+    " every cell centred, measured in display columns so CJK names line up.
+    let l:today = strftime('%Y-%m-%d', l:now)
+    let l:w_version = max([strdisplaywidth('Version'), strdisplaywidth(l:version)])
+    let l:w_date = max([strdisplaywidth('Date'), strdisplaywidth(l:today)])
+    let l:w_author = max([strdisplaywidth('Author'), strdisplaywidth(l:author)])
+    let l:version_heading = '// ' . s:CenterCell('Version', l:w_version)
+        \ . ' | ' . s:CenterCell('Date', l:w_date)
+        \ . ' | ' . s:CenterCell('Author', l:w_author) . ' | Change Log'
+    let l:version_row = '// ' . s:CenterCell(l:version, l:w_version)
+        \ . ' | ' . s:CenterCell(l:today, l:w_date)
+        \ . ' | ' . s:CenterCell(l:author, l:w_author) . ' |'
 
     let l:header = [
         \ s:border,
@@ -29,8 +62,8 @@ function! AddTitle() abort
         \ '//',
         \ '// Description: ',
         \ '//',
-        \ '// Version | Date | Author | Change Log',
-        \ printf('// %s | %s | %s |', l:version, strftime('%Y-%m-%d', l:now), l:author),
+        \ l:version_heading,
+        \ l:version_row,
         \ '//',
         \ s:border,
         \ ]

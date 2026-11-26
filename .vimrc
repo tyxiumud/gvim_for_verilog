@@ -153,8 +153,9 @@ augroup filetype_vim
 augroup END
 "}}}
 "进行版权声明的设置,添加或更新头 F3 {{{
-"personal 保留个人网站，company 改为 Copyright（填写下方的版权方）。
-let g:verilog_title_template = 'personal'
+"0 = 公司（显示 Copyright，内容取下面的版权方）；1 = 个人（显示个人网站）。
+"旧的 'company' / 'personal' 写法仍兼容。
+let g:verilog_title_template = 1
 let g:verilog_title_author = 'Jelly'
 let g:verilog_title_email = '823300630@qq.com'
 let g:verilog_title_website = 'https://tyxiumud.github.io/'

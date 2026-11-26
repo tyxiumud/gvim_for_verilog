@@ -162,7 +162,7 @@ let g:verilog_port_columns = {
 
 在 `.vimrc` 中修改以下配置即可选择文件头模板：
 
-- `g:verilog_title_template` 默认为 `'personal'`，显示 `// Personal Website: <站点>`（`g:verilog_title_website`）。设为 `'company'` 时改为 `// Copyright: <版权方>`，内容取自 `g:verilog_title_copyright_holder`。
+- `g:verilog_title_template` 用数字选择页头模板：`0` 为 `// Copyright: <版权方>`（取 `g:verilog_title_copyright_holder`），`1` 为 `// Personal Website: <站点>`（取 `g:verilog_title_website`），默认 `1`。旧的字符串写法 `'company'` / `'personal'` 仍然识别。
 - `g:verilog_title_author` 和 `g:verilog_title_email` 设置作者与邮箱，邮箱可以留空。
 - `g:verilog_title_version` 设置首个版本号，默认为 `'1.0'`。首次生成时自动填入版本号、当天日期和作者，`Change Log` 列留给作者填写。
 

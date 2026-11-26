@@ -6,19 +6,35 @@ execute 'source ' . fnameescape(s:root . '/pack/user_define/start/user_define/pl
 let s:border = '//============================================================================='
 let s:date = strftime('%Y-%m-%d')
 
+" Display column of every '|' in a line, so CJK and ASCII cells can be
+" compared on screen width rather than byte count.
+function! s:BarPositions(line) abort
+    let l:positions = []
+    let l:index = 0
+    while l:index < len(a:line)
+        if a:line[l:index] ==# '|'
+            call add(l:positions, strdisplaywidth(strpart(a:line, 0, l:index)))
+        endif
+        let l:index += 1
+    endwhile
+    return l:positions
+endfunction
+
 " Generate a personal header with its first version and the module skeleton.
 file personal_demo.v
 call TitleDet()
 call assert_true(index(getline(1, '$'), '// Personal Website: https://tyxiumud.github.io/') >= 0)
-call assert_true(index(getline(1, '$'), '// Version | Date | Author | Change Log') >= 0)
-call assert_true(index(getline(1, '$'), '// 1.0 | ' . s:date . ' | Jelly |') >= 0)
+call assert_true(index(getline(1, '$'), '// Version |    Date    | Author | Change Log') >= 0)
+call assert_true(index(getline(1, '$'), '//   1.0   | ' . s:date . ' | Jelly  |') >= 0)
+call assert_equal(s:BarPositions('// Version |    Date    | Author | Change Log'),
+    \ s:BarPositions('//   1.0   | ' . s:date . ' | Jelly  |'))
 call assert_true(index(getline(1, '$'), 'module PERSONAL_DEMO(') >= 0)
 call assert_equal('endmodule', getline('$'))
 
 " Use the configured company and author on an existing module.
 enew!
 file company_demo.sv
-let g:verilog_title_template = 'company'
+let g:verilog_title_template = 0
 let g:verilog_title_copyright_holder = '示例公司'
 let g:verilog_title_author = '示例作者'
 let g:verilog_title_email = ''
@@ -30,8 +46,13 @@ let s:lines = getline(1, '$')
 call assert_true(index(s:lines, '// Copyright: 示例公司') >= 0)
 call assert_equal(-1, match(s:lines, '^// Personal Website:'))
 call assert_true(index(s:lines, '// Author: 示例作者') >= 0)
-let s:version = '// 2.3 | ' . s:date . ' | 示例作者 |'
+let s:version = '//   2.3   | ' . s:date . ' | 示例作者 |'
 call assert_true(index(s:lines, s:version) >= 0)
+" Wide characters must not push the separators out of line.
+let s:heading = match(s:lines, '| Change Log$')
+call assert_true(s:heading >= 0)
+call assert_equal(s:BarPositions(s:lines[s:heading]),
+    \ s:BarPositions(s:lines[s:heading + 1]))
 call assert_equal(s:body, s:lines[-3:])
 
 " Refresh only the header, regardless of the cursor and current settings.
@@ -46,7 +67,7 @@ file renamed.sv
 call cursor(line('$') - 1, 5)
 let s:cursor = getpos('.')
 let @/ = 'keep-this-search'
-let g:verilog_title_template = 'personal'
+let g:verilog_title_template = 1
 let g:verilog_title_version = '3.0'
 call TitleDet()
 call assert_match('^// Last modified: ' . s:date . ' \d\d:\d\d$', getline(s:modified_line))
@@ -85,6 +106,23 @@ call assert_true(index(s:legacy, '// Copyright: 旧公司') >= 0)
 call assert_true(index(s:legacy, '// Version | Date | Author | Change Log') >= 0)
 call assert_equal(-1, match(s:legacy, '版权所有\|版本 |'))
 call assert_true(index(s:legacy, '// 1.0 | 2000-01-01 | Jelly | 手工填写') >= 0)
+
+" The legacy string values still select the same two templates.
+enew!
+file legacy_company.sv
+let g:verilog_title_template = 'company'
+let g:verilog_title_copyright_holder = '旧公司'
+let g:verilog_title_author = 'Jelly'
+let g:verilog_title_email = ''
+call TitleDet()
+call assert_true(index(getline(1, '$'), '// Copyright: 旧公司') >= 0)
+call assert_equal(-1, match(getline(1, '$'), '^// Personal Website:'))
+enew!
+file legacy_personal.sv
+let g:verilog_title_template = 'personal'
+call TitleDet()
+call assert_true(index(getline(1, '$'), '// Personal Website: https://tyxiumud.github.io/') >= 0)
+call assert_equal(-1, match(getline(1, '$'), '^// Copyright:'))
 
 if !empty(v:errors)
     for s:error in v:errors
